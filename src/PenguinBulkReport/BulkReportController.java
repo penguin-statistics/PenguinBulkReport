@@ -23,7 +23,9 @@ import org.json.JSONObject;
  *      - Controller for program GUI part
  */
 public class BulkReportController {
-    private HashMap<String,String> stages = new HashMap();
+    private HashMap<String,String> stages = new HashMap<>();
+    private HashMap<String, String> items = new HashMap<>();
+    private HashMap<String, JSONArray> limitations = new HashMap<>();
     private ArrayList<String> choices_of_stage = new ArrayList<>();
 
     @FXML
@@ -56,18 +58,6 @@ public class BulkReportController {
 
     @FXML
     void add_stage(ActionEvent event){
-        if (stages.isEmpty()) {
-            JSONArray allStages = PenguinBulkReport.all_stages();
-            for (int i = 0; i < allStages.length(); i++) {
-                JSONObject item = allStages.getJSONObject(i);
-                String stageType = item.optString("stageType");
-                if (stageType.equals("MAIN")) {
-                    String stageID = item.optString("code");
-                    String fullID = item.optString("stageId");
-                    stages.put(stageID,fullID);
-                }
-            }
-        }
         ChoiceDialog<String> dialog = new ChoiceDialog<>(null, stages.keySet());
         dialog.setTitle("Please choose a stage");
         dialog.setHeaderText("添加一个您刷素材的地点");
@@ -118,18 +108,60 @@ public class BulkReportController {
     }
 
     @FXML
-    void get_selected_stage(ActionEvent event){
+    void select_stage(ActionEvent event){
         String stage_selected = stage_list.getSelectionModel().getSelectedItem();
-        PenguinBulkReport.stage_info(stages.get(stage_selected));
+        JSONObject info = PenguinBulkReport.stage_info(stages.get(stage_selected));
+        JSONArray bounds = limitations.get(stages.get(stage_selected));
+
+        ArrayList<String> normal_drop = (ArrayList<String>) info.opt("normalDrop");
+        ArrayList<String> special_drop = (ArrayList<String>) info.opt("specialDrop");
+        ArrayList<String> extra_drop = (ArrayList<String>) info.opt("extraDrop");
+
+
+        for (String item : normal_drop){
+            String item_name = items.get(item);
+
+        }
     }
 
     private void create_Item_panel(String item){
         VBox item_base = new VBox();
         ImageView icon = new ImageView();
+
     }
 
     @FXML
     void initialize() {
+        if (items.isEmpty()) {
+            JSONArray allItems = PenguinBulkReport.all_items();
+            for (int i = 0; i < allItems.length(); i++) {
+                JSONObject item = allItems.getJSONObject(i);
+                String itemId = item.optString("itemId");
+                String itemName = item.optString("name");
+                items.put(itemId,itemName);
+            }
+        }
+        if (stages.isEmpty()) {
+            JSONArray allStages = PenguinBulkReport.all_stages();
+            for (int i = 0; i < allStages.length(); i++) {
+                JSONObject item = allStages.getJSONObject(i);
+                String stageType = item.optString("stageType");
+                if (stageType.equals("MAIN")) {
+                    String stageID = item.optString("code");
+                    String fullID = item.optString("stageId");
+                    stages.put(stageID,fullID);
+                }
+            }
+        }
+        if (limitations.isEmpty()) {
+            JSONArray allLimitaions = PenguinBulkReport.all_stages();
+            for (int i = 0; i < allLimitaions.length(); i++) {
+                JSONObject item = allLimitaions.getJSONObject(i);
+                String stage = item.optString("name");
+                JSONArray itemQuatityBounds = (JSONArray) item.opt("itemQuantityBounds");
+                limitations.put(stage,itemQuatityBounds);
+            }
+        }
         assert add_stage_button != null : "fx:id=\"add_stage_button\" was not injected: check your FXML file 'scene.fxml'.";
         assert login_button != null : "fx:id=\"login_button\" was not injected: check your FXML file 'scene.fxml'.";
         assert result_grid != null : "fx:id=\"result_grid\" was not injected: check your FXML file 'scene.fxml'.";

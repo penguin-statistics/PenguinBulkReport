@@ -91,6 +91,63 @@ public class PenguinBulkReport {
         return stages;
     }
 
+    public static JSONArray all_items(){
+        JSONArray items = null;
+        try {
+            URL url = new URL("https://penguin-stats.io/PenguinStats/api/items/");
+            HttpURLConnection httpUrlConn = (HttpURLConnection) url.openConnection();
+            httpUrlConn.setDoInput(true);
+            httpUrlConn.setRequestMethod("GET");
+            httpUrlConn.setRequestProperty("user-agent", "114514");
+            httpUrlConn.connect();
+            InputStream is = httpUrlConn.getInputStream();
+            BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+            String line = null;
+            StringBuilder sb = new StringBuilder();
+
+            while ((line = rd.readLine()) != null) {
+                sb.append(line);
+            }
+            is.close();
+
+            String jsonText= sb.toString();
+            items = new JSONArray(jsonText);
+
+            httpUrlConn.disconnect();
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+        return items;
+    }
+
+    public static JSONArray all_Limitations(){
+        JSONArray limitations = null;
+        try {
+            URL url = new URL("https://penguin-stats.io/PenguinStats/api/limitations/");
+            HttpURLConnection httpUrlConn = (HttpURLConnection) url.openConnection();
+            httpUrlConn.setDoInput(true);
+            httpUrlConn.setRequestMethod("GET");
+            httpUrlConn.setRequestProperty("user-agent", "114514");
+            httpUrlConn.connect();
+            InputStream is = httpUrlConn.getInputStream();
+            BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+            String line = null;
+            StringBuilder sb = new StringBuilder();
+
+            while ((line = rd.readLine()) != null) {
+                sb.append(line);
+            }
+            is.close();
+
+            String jsonText= sb.toString();
+            limitations = new JSONArray(jsonText);
+
+            httpUrlConn.disconnect();
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+        return limitations;
+    }
 
     public static JSONObject stage_info(String stage_id) {
         JSONObject json_result = null;
