@@ -92,7 +92,7 @@ public class PenguinBulkReport {
     }
 
 
-    public JSONObject stage_info(String stage_id) {
+    public static JSONObject stage_info(String stage_id) {
         JSONObject json_result = null;
         int respond_code =0;
         try{

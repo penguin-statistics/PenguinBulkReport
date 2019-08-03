@@ -2,16 +2,18 @@ package PenguinBulkReport;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableArray;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -21,8 +23,8 @@ import org.json.JSONObject;
  *      - Controller for program GUI part
  */
 public class BulkReportController {
+    private HashMap<String,String> stages = new HashMap();
     private ArrayList<String> choices_of_stage = new ArrayList<>();
-    private ArrayList<String> all_stages = new ArrayList<>();
 
     @FXML
     private BorderPane frame;
@@ -54,23 +56,26 @@ public class BulkReportController {
 
     @FXML
     void add_stage(ActionEvent event){
-        if (all_stages.isEmpty()) {
+        if (stages.isEmpty()) {
             JSONArray allStages = PenguinBulkReport.all_stages();
             for (int i = 0; i < allStages.length(); i++) {
                 JSONObject item = allStages.getJSONObject(i);
                 String stageType = item.optString("stageType");
                 if (stageType.equals("MAIN")) {
                     String stageID = item.optString("code");
-                    all_stages.add(stageID);
+                    String fullID = item.optString("stageId");
+                    stages.put(stageID,fullID);
                 }
             }
         }
-        ChoiceDialog<String> dialog = new ChoiceDialog<>(null, all_stages);
+        ChoiceDialog<String> dialog = new ChoiceDialog<>(null, stages.keySet());
         dialog.setTitle("Please choose a stage");
         dialog.setHeaderText("添加一个您刷素材的地点");
         dialog.setContentText("地点");
         Optional<String> result = dialog.showAndWait();;
-        result.ifPresent(s -> choices_of_stage.add(s));
+        result.ifPresent(s -> {
+            choices_of_stage.add(s);
+        });
         updateListView();
     }// add stage ends
 
@@ -108,12 +113,20 @@ public class BulkReportController {
         System.out.println(login_status);
     }
 
-    @FXML
     private void updateListView(){
         stage_list.setItems(FXCollections.observableArrayList(choices_of_stage));
     }
 
+    @FXML
+    void get_selected_stage(ActionEvent event){
+        String stage_selected = stage_list.getSelectionModel().getSelectedItem();
+        PenguinBulkReport.stage_info(stages.get(stage_selected));
+    }
 
+    private void create_Item_panel(String item){
+        VBox item_base = new VBox();
+        ImageView icon = new ImageView();
+    }
 
     @FXML
     void initialize() {
