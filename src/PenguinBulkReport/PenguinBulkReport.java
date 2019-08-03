@@ -21,11 +21,12 @@ import org.json.JSONObject;
 /*
     Penguin-stats bulk report
          - report on specific stages in multiple times
+         - backend methods
  */
 
 public class PenguinBulkReport {
 
-    public int login(String userID){
+    public static int login(String userID){
         int respond_code =0;
         try {
             URL url = new URL("https://penguin-stats.io/PenguinStats/api/users");

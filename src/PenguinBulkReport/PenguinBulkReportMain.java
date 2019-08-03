@@ -7,6 +7,10 @@ import javafx.stage.Stage;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 
+/*
+    PenguinBulkReportMain
+        - Where the program starts
+ */
 public class PenguinBulkReportMain extends Application {
     @Override
     public void start(Stage stage) throws IOException {
@@ -21,10 +25,10 @@ public class PenguinBulkReportMain extends Application {
         stage.setTitle("Penguin Stats Bulk Report");
         // Display the Stage
         stage.show();
-    }
+    }// start ends
 
     public static void main(String[] args){
         launch(args);
-    }
+    }// main ends
 
-}
+}//PenguinBulkReportMain ends

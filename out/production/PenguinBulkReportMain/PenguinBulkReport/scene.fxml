@@ -11,8 +11,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-
-<BorderPane  xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="PenguinBulkReport.BulkReportController">
+<BorderPane fx:id="frame" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="PenguinBulkReport.BulkReportController">
    <center>
         <VBox prefHeight="376.0" prefWidth="640.0">
             <children>
