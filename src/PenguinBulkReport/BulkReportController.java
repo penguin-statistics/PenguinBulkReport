@@ -9,13 +9,17 @@ import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import javax.swing.border.TitledBorder;
 
 
 /**
@@ -27,7 +31,7 @@ public class BulkReportController {
     private HashMap<String, String> items = new HashMap<>();
     private HashMap<String, JSONArray> limitations = new HashMap<>();
     private ArrayList<String> choices_of_stage = new ArrayList<>();
-
+    private HBox[] hboxes = new HBox[12];
     @FXML
     private BorderPane frame;
 
@@ -108,26 +112,100 @@ public class BulkReportController {
     }
 
     @FXML
-    void select_stage(ActionEvent event){
+    void select_stage(MouseEvent event){
+        clear_boxes();
+
         String stage_selected = stage_list.getSelectionModel().getSelectedItem();
         JSONObject info = PenguinBulkReport.stage_info(stages.get(stage_selected));
         JSONArray bounds = limitations.get(stages.get(stage_selected));
 
-        ArrayList<String> normal_drop = (ArrayList<String>) info.opt("normalDrop");
-        ArrayList<String> special_drop = (ArrayList<String>) info.opt("specialDrop");
-        ArrayList<String> extra_drop = (ArrayList<String>) info.opt("extraDrop");
+        JSONArray normal_drop = info.getJSONArray("normalDrop");
+        JSONArray special_drop = info.getJSONArray("specialDrop");
+        JSONArray extra_drop = info.getJSONArray("extraDrop");
 
+        int hbox_index = 0;
 
-        for (String item : normal_drop){
-            String item_name = items.get(item);
+        for (int i = 0;i<normal_drop.length(); i++){
+            String item_name = items.get(normal_drop.getString(i));
+            URL urlToImage = this.getClass().getResource("icons/"+item_name+"icon.png");
+            Image icon_image = new Image(String.valueOf(urlToImage),50,50,false,false);
+            hboxes[0].setStyle("-fx-border-width: 2;" +"-fx-border-color: DeepSkyBlue");
+            ((ImageView)hboxes[0].getChildren().get(0)).setImage(icon_image);
+            ((Label)((VBox)hboxes[0].getChildren().get(1)).getChildren().get(0)).setText("常规掉落");
+            ((Label)((VBox)hboxes[0].getChildren().get(1)).getChildren().get(0)).setTextFill(Color.web("#00bfff"));
+            ((VBox)hboxes[hbox_index].getChildren().get(1)).getChildren().get(1).setVisible(true);
+            hbox_index++;
+        }
+        for (int i = 0;i<special_drop.length(); i++){
+            String item_name = items.get(special_drop.getString(i));
+            URL urlToImage = this.getClass().getResource("icons/"+item_name+"icon.png");
+            Image icon_image = new Image(String.valueOf(urlToImage),50,50,false,false);
+            hboxes[hbox_index].setStyle("-fx-border-width: 2;" +"-fx-border-color: coral");
+            ((ImageView)hboxes[hbox_index].getChildren().get(0)).setImage(icon_image);
+            ((Label)((VBox)hboxes[hbox_index].getChildren().get(1)).getChildren().get(0)).setText("特殊掉落");
+            ((Label)((VBox)hboxes[hbox_index].getChildren().get(1)).getChildren().get(0)).setTextFill(Color.web("#ff7f50"));
+            ((VBox)hboxes[hbox_index].getChildren().get(1)).getChildren().get(1).setVisible(true);
+            hbox_index++;
+        }
+        for (int i = 0;i<extra_drop.length(); i++){
+            String item_name = items.get(extra_drop.getString(i));
+            URL urlToImage = this.getClass().getResource("icons/"+item_name+"icon.png");
+            Image icon_image = new Image(String.valueOf(urlToImage),50,50,false,false);
+            hboxes[hbox_index].setStyle("-fx-border-width: 2;" +"-fx-border-color: dimgrey");
+            ((ImageView)hboxes[hbox_index].getChildren().get(0)).setImage(icon_image);
+            ((Label)((VBox)hboxes[hbox_index].getChildren().get(1)).getChildren().get(0)).setText("额外掉落");
+            ((Label)((VBox)hboxes[hbox_index].getChildren().get(1)).getChildren().get(0)).setTextFill(Color.web("#696969"));
+            ((VBox)hboxes[hbox_index].getChildren().get(1)).getChildren().get(1).setVisible(true);
+            hbox_index++;
+        }
+        hboxes[11].setVisible(true);
+    }
+//    private HBox create_Item_panel(String item, String type){
+//        HBox item_base = new HBox(2);
+//        URL urlToImage = this.getClass().getResource("icons/"+item+"icon.png");
+//        Image icon_image = new Image(String.valueOf(urlToImage),50,50,false,false);
+//        ImageView icon = new ImageView(icon_image);
+//        VBox box_for_quantity = new VBox();
+//        TextField quantity = new TextField();
+//        Label type_label = new Label();
+//        box_for_quantity.getChildren().addAll(type_label,quantity);
+//        switch (type) {
+//            case "normal":
+//                item_base.setStyle("-fx-border-width: 2;" +"-fx-border-color: DeepSkyBlue");
+//                type_label.setText("常规掉落");
+//                type_label.setTextFill(Color.web("#00bfff"));
+//                break;
+//            case "special":
+//                item_base.setStyle("-fx-border-width: 2;" +"-fx-border-color: coral");
+//                type_label.setText("特殊掉落");
+//                type_label.setTextFill(Color.web("#ff7f50"));
+//                break;
+//            case "extra":
+//                item_base.setStyle("-fx-border-width: 2;" +"-fx-border-color: dimgrey");
+//                type_label.setText("额外掉落");
+//                type_label.setTextFill(Color.web("#696969"));
+//                break;
+//        }
+//        item_base.getChildren().addAll(icon,box_for_quantity);
+//        return item_base;
+//    }
 
+    private void clear_boxes(){
+        for (int i=0;i<11;i++){
+            ((ImageView)hboxes[i].getChildren().get(0)).setImage(null);
+            ((Label)((VBox)hboxes[i].getChildren().get(1)).getChildren().get(0)).setText("");
+            ((VBox)hboxes[i].getChildren().get(1)).getChildren().get(1).setVisible(false);
+            hboxes[i].setStyle(null);
         }
     }
 
-    private void create_Item_panel(String item){
-        VBox item_base = new VBox();
-        ImageView icon = new ImageView();
-
+    private HBox create_Furniture_panel(){
+        HBox item_base = new HBox();
+        Label furniture_label = new Label("家具掉落");
+        Button furniture_yes_button = new Button("是");
+        Button furniture_no_button = new Button("否");
+        item_base.getChildren().addAll(furniture_label,furniture_yes_button,furniture_no_button);
+        return item_base;
     }
 
     @FXML
@@ -162,6 +240,22 @@ public class BulkReportController {
                 limitations.put(stage,itemQuatityBounds);
             }
         }
+        for (int i=0;i<11;i++){
+            hboxes[i] = new HBox(2);
+            ImageView icon = new ImageView();
+            VBox box_for_quantity = new VBox();
+            TextField quantity = new TextField();
+            quantity.setVisible(false);
+            Label type_label = new Label();
+            box_for_quantity.getChildren().addAll(type_label,quantity);
+            hboxes[i].getChildren().addAll(icon,box_for_quantity);
+            result_grid.add(hboxes[i], i%3,i/3);
+            hboxes[i].setPrefWidth(100);
+        }
+        hboxes[11] = create_Furniture_panel();
+        hboxes[11].setVisible(false);
+        result_grid.add(hboxes[11],2,3);
+
         assert add_stage_button != null : "fx:id=\"add_stage_button\" was not injected: check your FXML file 'scene.fxml'.";
         assert login_button != null : "fx:id=\"login_button\" was not injected: check your FXML file 'scene.fxml'.";
         assert result_grid != null : "fx:id=\"result_grid\" was not injected: check your FXML file 'scene.fxml'.";
@@ -170,7 +264,5 @@ public class BulkReportController {
 
 
     }
-
-
 
 }
