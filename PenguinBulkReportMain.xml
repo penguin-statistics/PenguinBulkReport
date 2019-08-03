@@ -2,7 +2,7 @@
 <project name="penguinbulkreport" default="all">
   
   
-  <property file="penguinbulkreport.properties"/>
+  <property file="PenguinBulkReportMain.properties"/>
   <!-- Uncomment the following property if no tests compilation is needed -->
   <!-- 
   <property name="skip.tests" value="true"/>
@@ -140,15 +140,15 @@
   
   <!-- Modules -->
   
-  <import file="${basedir}/.idea/module_penguinbulkreport.xml"/>
+  <import file="${basedir}/.idea/module_penguinbulkreportmain.xml"/>
   
   <target name="init" description="Build initialization">
     <!-- Perform any build initialization in this target -->
   </target>
   
-  <target name="clean" depends="clean.module.penguinbulkreport" description="cleanup all"/>
+  <target name="clean" depends="clean.module.penguinbulkreportmain" description="cleanup all"/>
   
-  <target name="build.modules" depends="init, clean, compile.module.penguinbulkreport" description="build all modules"/>
+  <target name="build.modules" depends="init, clean, compile.module.penguinbulkreportmain" description="build all modules"/>
   
   <target name="all" depends="build.modules" description="build all"/>
 </project>
