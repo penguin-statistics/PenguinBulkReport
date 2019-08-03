@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -13,9 +12,9 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ArrayList;
-import java.util.Scanner;
 import java.nio.charset.Charset;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /*
@@ -62,6 +61,36 @@ public class PenguinBulkReport {
 
         return respond_code;
     }
+
+    public static JSONArray all_stages(){
+        JSONArray stages = null;
+        try {
+            URL url = new URL("https://penguin-stats.io/PenguinStats/api/stages/");
+            HttpURLConnection httpUrlConn = (HttpURLConnection) url.openConnection();
+            httpUrlConn.setDoInput(true);
+            httpUrlConn.setRequestMethod("GET");
+            httpUrlConn.setRequestProperty("user-agent", "114514");
+            httpUrlConn.connect();
+            InputStream is = httpUrlConn.getInputStream();
+            BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+            String line = null;
+            StringBuilder sb = new StringBuilder();
+
+            while ((line = rd.readLine()) != null) {
+                sb.append(line);
+            }
+            is.close();
+
+            String jsonText= sb.toString();
+            stages = new JSONArray(jsonText);
+
+            httpUrlConn.disconnect();
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+        return stages;
+    }
+
 
     public JSONObject stage_info(String stage_id) {
         JSONObject json_result = null;

@@ -1,15 +1,19 @@
 package PenguinBulkReport;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Optional;
 import java.util.ResourceBundle;
+
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableArray;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 
 /**
@@ -17,6 +21,9 @@ import javafx.scene.layout.GridPane;
  *      - Controller for program GUI part
  */
 public class BulkReportController {
+    private ArrayList<String> choices_of_stage = new ArrayList<>();
+    private ArrayList<String> all_stages = new ArrayList<>();
+
     @FXML
     private BorderPane frame;
 
@@ -30,17 +37,48 @@ public class BulkReportController {
     private Button add_stage_button;
 
     @FXML
+    private Button clear_stage_button;
+
+    @FXML
     private Button login_button;
 
     @FXML
     private GridPane result_grid;
 
     @FXML
-    private ListView<?> stage_list;
+    private ListView<String> stage_list;
 
     @FXML
     private TextField user_id_field;
 
+
+    @FXML
+    void add_stage(ActionEvent event){
+        if (all_stages.isEmpty()) {
+            JSONArray allStages = PenguinBulkReport.all_stages();
+            for (int i = 0; i < allStages.length(); i++) {
+                JSONObject item = allStages.getJSONObject(i);
+                String stageType = item.optString("stageType");
+                if (stageType.equals("MAIN")) {
+                    String stageID = item.optString("code");
+                    all_stages.add(stageID);
+                }
+            }
+        }
+        ChoiceDialog<String> dialog = new ChoiceDialog<>(null, all_stages);
+        dialog.setTitle("Please choose a stage");
+        dialog.setHeaderText("添加一个您刷素材的地点");
+        dialog.setContentText("地点");
+        Optional<String> result = dialog.showAndWait();;
+        result.ifPresent(s -> choices_of_stage.add(s));
+        updateListView();
+    }// add stage ends
+
+    @FXML
+    void clear_stage(ActionEvent event){
+        choices_of_stage.clear();
+        updateListView();
+    }
 
     @FXML
     void user_login(ActionEvent event) {
@@ -69,6 +107,13 @@ public class BulkReportController {
         }
         System.out.println(login_status);
     }
+
+    @FXML
+    private void updateListView(){
+        stage_list.setItems(FXCollections.observableArrayList(choices_of_stage));
+    }
+
+
 
     @FXML
     void initialize() {
