@@ -1,9 +1,6 @@
 package PenguinBulkReport;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -14,6 +11,7 @@ import java.util.Map;
 import java.util.ArrayList;
 import java.nio.charset.Charset;
 
+import javafx.util.Pair;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -25,7 +23,8 @@ import org.json.JSONObject;
 
 public class PenguinBulkReport {
 
-    public static int login(String userID){
+
+    public int login(String userID){
         int respond_code =0;
         try {
             URL url = new URL("https://penguin-stats.io/PenguinStats/api/users");
@@ -48,15 +47,16 @@ public class PenguinBulkReport {
         return respond_code;
     }
 
-    public int report(String stage_id, JSONObject drop_info, int furniture_num,String userID) {
+    public int report(String stage_id, JSONArray drop_info, int furniture_num,String userID) {
 
         String requestUrl = "https://penguin-stats.io/PenguinStats/api/report";
         // Info send to penguin-stats.io
-        HashMap params = new HashMap();
-        params.put("stage_id",stage_id);//Stage id
+        JSONObject params = new JSONObject();
+        params.put("stageId",stage_id);//Stage id
         params.put("drops",drop_info); // drop array with matrix
         params.put("furnitureNum",furniture_num);//either 1 | 0
-
+        params.put("source","penguin bulk report");//either 1 | 0
+        System.out.println(params.toString());
         int respond_code = sendDropRequest(requestUrl,params,userID);
 
         return respond_code;
@@ -149,6 +149,128 @@ public class PenguinBulkReport {
         return limitations;
     }
 
+    public Pair<JSONArray, JSONObject> get_limitations(String stageID){
+        JSONArray allLimitations = all_Limitations();
+        JSONArray itemQuantityBounds = null;
+        JSONArray itemTypeBounds = null;
+        for (int i = 0; i < allLimitations.length(); i++) {
+            JSONObject item = allLimitations.getJSONObject(i);
+            String stage = item.optString("name");
+            if (stage.equals(stageID)){
+                return new Pair<>(item.optJSONArray("itemQuantityBounds"), item.optJSONObject("itemTypeBounds"));
+            }
+        }
+        return null;
+    }
+
+    public int[] get_item_limitation_in_stage(String stageID, String itemID){
+        Pair<JSONArray, JSONObject> limitations = get_limitations(stageID);
+        int[] bounds = new int[2];
+        for (int i =0;i<limitations.getKey().length();i++){
+            if (itemID.equals(limitations.getKey().getJSONObject(i).getString("itemId"))){
+                bounds[0] = limitations.getKey().getJSONObject(i).getJSONObject("bounds").getInt("lower");
+                bounds[1] = limitations.getKey().getJSONObject(i).getJSONObject("bounds").getInt("upper");
+                break;
+            }
+        }
+        return bounds;
+    }
+
+    public void stage_multiple_reports(String userID, HashMap<String,HashMap<String,Object>> results){
+        if (userID == null){
+            System.out.println("Not Logged in");
+            return;
+        }
+        for (String stageID : results.keySet()) {
+            JSONObject info = stage_info(stageID);
+            JSONArray normal_drop = info.getJSONArray("normalDrop");
+            JSONArray special_drop = info.getJSONArray("specialDrop");
+            JSONArray extra_drop = info.getJSONArray("extraDrop");
+
+            JSONArray summary_drop = new JSONArray();
+            int[] drop_list = (int[])results.get(stageID).get("drop_list");
+            int furniture_total = (int)results.get(stageID).get("furniture_total");
+            int furniture_num = 0;
+            for (int t = 0; t < Integer.parseInt(results.get(stageID).get("times").toString()); t++) {
+                //JSONArray single_res = new JSONArray();
+                if (furniture_total >0) {
+                    furniture_num = 1;
+                    furniture_total --;
+                } else{
+                    furniture_num =0;
+                }
+                int item_index = 0;
+
+                for (int i = 0; i<normal_drop.length();i++){
+                    if (drop_list[item_index] == 0){
+                        item_index++;
+                        continue;
+                    }
+                    HashMap<String, Object> item = new HashMap<>();
+                    String id = normal_drop.getString(i);
+                    item.put("itemId", id);
+                    int[] item_quantity_bound = get_item_limitation_in_stage(stageID, id);
+                    if (drop_list[item_index] >= item_quantity_bound[1]) {
+                        item.put("quantity", item_quantity_bound[1]);
+                        drop_list[item_index] -= item_quantity_bound[1];
+                    } else if (drop_list[item_index]>= item_quantity_bound[0] && drop_list[item_index]>0) {
+                        item.put("quantity", drop_list[item_index]);
+                        drop_list[item_index] -= drop_list[item_index];
+                    }
+                    summary_drop.put(new JSONObject(item));
+                    item_index++;
+                }
+                for (int i = 0; i<special_drop.length();i++){
+                    if (drop_list[item_index] == 0){
+                        item_index++;
+                        continue;
+                    }
+                    HashMap<String, Object> item = new HashMap<>();
+                    String id = special_drop.getString(i);
+                    item.put("itemId", id);
+                    int[] item_quantity_bound = get_item_limitation_in_stage(stageID, id);
+                    if (drop_list[item_index]>= item_quantity_bound[1]) {
+                        item.put("quantity", item_quantity_bound[1]);
+                        drop_list[item_index] -= item_quantity_bound[1];
+                    } else if (drop_list[item_index]>= item_quantity_bound[0]) {
+                        item.put("quantity", item_quantity_bound[0]);
+                        drop_list[item_index] -= item_quantity_bound[0];
+                    }
+                    summary_drop.put(new JSONObject(item));
+                    item_index++;
+                }
+                for (int i = 0; i<extra_drop.length();i++){
+                    if (drop_list[item_index] == 0){
+                        item_index++;
+                        continue;
+                    }
+                    HashMap<String, Object> item = new HashMap<>();
+                    String id = extra_drop.getString(i);
+                    item.put("itemId", id);
+                    int[] item_quantity_bound = get_item_limitation_in_stage(stageID, id);
+                    if (drop_list[item_index]>= item_quantity_bound[1]) {
+                        item.put("quantity", item_quantity_bound[1]);
+                        drop_list[item_index] -= item_quantity_bound[1];
+                    } else if (drop_list[item_index]>= item_quantity_bound[0]) {
+                        item.put("quantity", item_quantity_bound[0]);
+                        drop_list[item_index] -= item_quantity_bound[0];
+                    }
+                    summary_drop.put(new JSONObject(item));
+                    item_index++;
+                }
+
+                int report_status = report(stageID,summary_drop,furniture_num,userID);
+                if (report_status>201){
+                    System.out.println("Error! Error code is:");
+                    System.out.println(report_status);
+                } else{
+                    System.out.println(report_status);
+                    System.out.println("Upload Successful");
+                }
+            }// for ends
+        }// iterate stage ends
+    }//method ends
+
     public static JSONObject stage_info(String stage_id) {
         JSONObject json_result = null;
         int respond_code =0;
@@ -182,7 +304,7 @@ public class PenguinBulkReport {
         return json_result;
     }
 
-    private int sendDropRequest(String requestUrl, HashMap params, String userID) {
+    private int sendDropRequest(String requestUrl, JSONObject params, String userID) {
         int respond_code = 0;
         try {
             URL url = new URL(requestUrl);
@@ -192,11 +314,10 @@ public class PenguinBulkReport {
             httpUrlConn.setRequestProperty("Cookie","userID="+userID);
             httpUrlConn.setRequestProperty("Content-Type","application/json; utf-8");
             httpUrlConn.setRequestProperty("user-agent", "114514");
-            JSONObject json_string = new JSONObject(params);
             httpUrlConn.connect();
 
-            OutputStream os = httpUrlConn.getOutputStream();
-            os.write(json_string.toString().getBytes(),0,json_string.toString().getBytes().length);
+            OutputStreamWriter os = new OutputStreamWriter(httpUrlConn.getOutputStream());
+            os.write(params.toString());
             os.flush();
             os.close();
             respond_code = httpUrlConn.getResponseCode();
