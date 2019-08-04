@@ -53,90 +53,12 @@
     <exclude name="**/?*.aj"/>
   </patternset>
   
-  <!-- JDK definitions -->
-  
-  <property name="jdk.bin.1.8" value="${jdk.home.1.8}/bin"/>
-  <path id="jdk.classpath.1.8">
-    <fileset dir="${jdk.home.1.8}">
-      <include name="jre/lib/charsets.jar"/>
-      <include name="jre/lib/deploy.jar"/>
-      <include name="jre/lib/ext/access-bridge-64.jar"/>
-      <include name="jre/lib/ext/cldrdata.jar"/>
-      <include name="jre/lib/ext/dnsns.jar"/>
-      <include name="jre/lib/ext/jaccess.jar"/>
-      <include name="jre/lib/ext/jfxrt.jar"/>
-      <include name="jre/lib/ext/localedata.jar"/>
-      <include name="jre/lib/ext/nashorn.jar"/>
-      <include name="jre/lib/ext/sunec.jar"/>
-      <include name="jre/lib/ext/sunjce_provider.jar"/>
-      <include name="jre/lib/ext/sunmscapi.jar"/>
-      <include name="jre/lib/ext/sunpkcs11.jar"/>
-      <include name="jre/lib/ext/zipfs.jar"/>
-      <include name="jre/lib/javaws.jar"/>
-      <include name="jre/lib/jce.jar"/>
-      <include name="jre/lib/jfr.jar"/>
-      <include name="jre/lib/jfxswt.jar"/>
-      <include name="jre/lib/jsse.jar"/>
-      <include name="jre/lib/management-agent.jar"/>
-      <include name="jre/lib/plugin.jar"/>
-      <include name="jre/lib/resources.jar"/>
-      <include name="jre/lib/rt.jar"/>
-      <include name="../../../Users/metak/Desktop/all-in/PenguinBulkReport/commons-beanutils-1.9.3.jar"/>
-      <include name="../../../Users/metak/Desktop/all-in/PenguinBulkReport/commons-collections-3.2.2.jar"/>
-      <include name="../../../Users/metak/Desktop/all-in/PenguinBulkReport/commons-lang-2.6.jar"/>
-      <include name="../../../Users/metak/Desktop/all-in/PenguinBulkReport/commons-logging-1.2.jar"/>
-      <include name="../../../Users/metak/Desktop/all-in/PenguinBulkReport/ezmorph-1.0.6.jar"/>
-      <include name="../../../Users/metak/Desktop/all-in/PenguinBulkReport/javax.servlet-api-4.0.1.jar"/>
-      <include name="../../../Users/metak/Desktop/all-in/PenguinBulkReport/json-20170516.jar"/>
-    </fileset>
-  </path>
-  
-  <property name="project.jdk.home" value="${jdk.home.1.8}"/>
-  <property name="project.jdk.bin" value="${jdk.bin.1.8}"/>
-  <property name="project.jdk.classpath" value="jdk.classpath.1.8"/>
-  
   
   <!-- Project Libraries -->
-  
-  <path id="library.commons-beanutils-1.9.3.classpath"/>
-  
-  <path id="library.commons-collections-3.2.2.classpath">
-    <pathelement location="${basedir}/commons-collections-3.2.2.jar"/>
-  </path>
-  
-  <path id="library.commons-lang-2.6.classpath">
-    <pathelement location="${basedir}/commons-lang-2.6.jar"/>
-  </path>
-  
-  <path id="library.commons-logging-1.2.classpath">
-    <pathelement location="${basedir}/commons-logging-1.2.jar"/>
-  </path>
-  
-  <path id="library.ezmorph-1.0.6.classpath">
-    <pathelement location="${basedir}/ezmorph-1.0.6.jar"/>
-  </path>
-  
-  <path id="library.javax.servlet-api-4.0.1.classpath">
-    <pathelement location="${basedir}/javax.servlet-api-4.0.1.jar"/>
-  </path>
   
   <path id="library.json-20170516.classpath">
     <pathelement location="${basedir}/json-20170516.jar"/>
   </path>
-  <!-- Register Custom Compiler Taskdefs -->
-  <property name="javac2.home" value="${idea.home}/lib"/>
-  <path id="javac2.classpath">
-    <fileset dir="${javac2.home}">
-      <include name="javac2.jar"/>
-      <include name="jdom.jar"/>
-      <include name="asm-all*.jar"/>
-      <include name="forms-*.jar"/>
-    </fileset>
-  </path>
-  <target name="register.custom.compilers">
-    <taskdef name="javac2" classname="com.intellij.ant.Javac2" classpathref="javac2.classpath"/>
-    <taskdef name="instrumentIdeaExtensions" classname="com.intellij.ant.InstrumentIdeaExtensions" classpathref="javac2.classpath"/>
-  </target>
   
   <!-- Modules -->
   
