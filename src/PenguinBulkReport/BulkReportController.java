@@ -88,6 +88,9 @@ public class BulkReportController {
                 System.out.println("This stage is selected");
             }
         });
+        updateListView();
+        hboxes[11].setVisible(true);
+        times_box.setVisible(true);
     }// add stage ends
 
     @FXML
@@ -241,6 +244,7 @@ public class BulkReportController {
     @FXML
     private void save_StageResult(){
         String stage_selected = stages.get(stage_list.getSelectionModel().getSelectedItem());
+        System.out.println("Stage selected:"+ stage_selected);
         HashMap<String,Object> drop_results = new HashMap<String, Object>();
         drop_results.put("times",times_field.getText());
         int[] num_for_each = new int[12];
@@ -256,6 +260,7 @@ public class BulkReportController {
     @FXML
     private void upload(){
         p.stage_multiple_reports(userId, all_results);
+        all_results.clear();
     }
 
     @FXML
