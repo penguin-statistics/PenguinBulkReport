@@ -28,9 +28,9 @@ public class BulkReportController {
     private HashMap<String, String> items = new HashMap<>();
     //private HashMap<String, JSONArray> limitations = new HashMap<>();
     private ArrayList<String> choices_of_stage = new ArrayList<>();
-    private HBox[] hboxes = new HBox[12];
+    private HBox[] hboxes = new HBox[16];
     private HashMap<String,HashMap<String,Object>> all_results = new HashMap<>();
-    private TextField[] amount_fields = new TextField[12];
+    private TextField[] amount_fields = new TextField[16];
     private int total_type = 0;
     private String userId = null;
     private PenguinBulkReport p = new PenguinBulkReport();
@@ -85,7 +85,7 @@ public class BulkReportController {
                 choices_of_stage.add(s);
                 updateListView();
             } else{
-                System.out.println("This stage is selected");
+                //System.out.println("This stage is selected");
             }
         });
         updateListView();
@@ -123,11 +123,11 @@ public class BulkReportController {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Login");
             alert.setHeaderText(null);
-            alert.setContentText("Login failed");
+            alert.setContentText("Login failed. \nError code is "+login_status);
             alert.showAndWait();
 
         }
-        System.out.println(login_status);
+        //System.out.println(login_status);
     }
 
     private void updateListView(){
@@ -182,8 +182,8 @@ public class BulkReportController {
             hbox_index++;
         }
         total_type = hbox_index;
-        System.out.println(total_type);
-        hboxes[11].setVisible(true);
+        //System.out.println(total_type);
+        hboxes[15].setVisible(true);
         times_box.setVisible(true);
     }
 //    private HBox create_Item_panel(String item, String type){
@@ -217,14 +217,14 @@ public class BulkReportController {
 //    }
 
     private void clear_boxes(){
-        for (int i=0;i<11;i++){
+        for (int i=0;i<15;i++){
             ((ImageView)hboxes[i].getChildren().get(0)).setImage(null);
             ((Label)((VBox)hboxes[i].getChildren().get(1)).getChildren().get(0)).setText("");
             ((TextField)((VBox)hboxes[i].getChildren().get(1)).getChildren().get(1)).setText("0");
             ((VBox)hboxes[i].getChildren().get(1)).getChildren().get(1).setVisible(false);
             hboxes[i].setStyle(null);
         }
-        hboxes[11].setVisible(false);
+        hboxes[15].setVisible(false);
         times_box.setVisible(false);
 
     }
@@ -235,7 +235,7 @@ public class BulkReportController {
         Label furniture_label = new Label("家具掉落");
         TextField quantity = new TextField();
         quantity.setText("0");
-        amount_fields[11] = quantity;
+        amount_fields[15] = quantity;
         item_base.getChildren().addAll(furniture_label,quantity);
         item_pane.getChildren().addAll(item_base);
         return item_pane;
@@ -244,21 +244,28 @@ public class BulkReportController {
     @FXML
     private void save_StageResult(){
         String stage_selected = stages.get(stage_list.getSelectionModel().getSelectedItem());
-        System.out.println("Stage selected:"+ stage_selected);
+        //System.out.println("Stage selected:"+ stage_selected);
         HashMap<String,Object> drop_results = new HashMap<String, Object>();
         drop_results.put("times",times_field.getText());
-        int[] num_for_each = new int[12];
+        int[] num_for_each = new int[15];
         for (int i =0;i<total_type;i++){
             num_for_each[i] =Integer.parseInt(amount_fields[i].getText());
         }
         drop_results.put("drop_list",num_for_each);
-        System.out.println(Arrays.toString(num_for_each));
-        drop_results.put("furniture_total",Integer.parseInt(amount_fields[11].getText()));
+        //System.out.println(Arrays.toString(num_for_each));
+        drop_results.put("furniture_total",Integer.parseInt(amount_fields[15].getText()));
         all_results.put(stage_selected,drop_results);
     }
 
     @FXML
     private void upload(){
+        if (userId == null){
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Login");
+            alert.setHeaderText(null);
+            alert.setContentText("这位Doctor，您还没登录企鹅数据呢~");
+            alert.showAndWait();
+        }
         p.stage_multiple_reports(userId, all_results);
         all_results.clear();
     }
@@ -298,7 +305,7 @@ public class BulkReportController {
 //                limitations.put(stage,itemQuatityBounds);
 //            }
 //        }
-        for (int i=0;i<11;i++){
+        for (int i=0;i<15;i++){
             hboxes[i] = new HBox(2);
             ImageView icon = new ImageView();
             VBox box_for_quantity = new VBox();
@@ -309,13 +316,13 @@ public class BulkReportController {
             box_for_quantity.getChildren().addAll(type_label,quantity);
             amount_fields[i] = quantity;
             hboxes[i].getChildren().addAll(icon,box_for_quantity);
-            result_grid.add(hboxes[i], i%3,i/3);
+            result_grid.add(hboxes[i], i%4,i/4);
             hboxes[i].setPrefWidth(100);
         }
-        hboxes[11] = create_Furniture_panel();
-        hboxes[11].setVisible(false);
+        hboxes[15] = create_Furniture_panel();
+        hboxes[15].setVisible(false);
         times_box.setVisible(false);
-        result_grid.add(hboxes[11],2,3);
+        result_grid.add(hboxes[15],2,3);
 
         assert add_stage_button != null : "fx:id=\"add_stage_button\" was not injected: check your FXML file 'scene.fxml'.";
         assert upload_button != null : "fx:id=\"upload_button\" was not injected: check your FXML file 'scene.fxml'.";

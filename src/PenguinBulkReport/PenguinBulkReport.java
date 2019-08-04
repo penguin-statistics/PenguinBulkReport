@@ -177,10 +177,6 @@ public class PenguinBulkReport {
     }
 
     public void stage_multiple_reports(String userID, HashMap<String,HashMap<String,Object>> results){
-        if (userID == null){
-            System.out.println("Not Logged in");
-            return;
-        }
         for (String stageID : results.keySet()) {
             JSONObject info = stage_info(stageID);
             JSONArray normal_drop = info.getJSONArray("normalDrop");
