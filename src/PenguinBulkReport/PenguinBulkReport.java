@@ -176,7 +176,8 @@ public class PenguinBulkReport {
         return bounds;
     }
 
-    public void stage_multiple_reports(String userID, HashMap<String,HashMap<String,Object>> results){
+    public ArrayList<String> stage_multiple_reports(String userID, HashMap<String,HashMap<String,Object>> results){
+        ArrayList<String> infos = new ArrayList<>();
         for (String stageID : results.keySet()) {
             JSONObject info = stage_info(stageID);
             JSONArray normal_drop = info.getJSONArray("normalDrop");
@@ -279,6 +280,7 @@ public class PenguinBulkReport {
                 params.put("furnitureNum",furniture_num);//either 1 | 0
                 params.put("source","penguin bulk report");//either 1 | 0
                 System.out.println(params.toString());
+                infos.add(params.toString());
 //                int report_status = report(stageID,summary_drop,furniture_num,userID);
 //                if (report_status>201){
 //                    System.out.println("Error! Error code is:");
@@ -289,6 +291,7 @@ public class PenguinBulkReport {
 //                }
             }// for ends
         }// iterate stage ends
+        return infos;
     }//method ends
 
     public static JSONObject stage_info(String stage_id) {

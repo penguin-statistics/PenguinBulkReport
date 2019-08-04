@@ -266,7 +266,34 @@ public class BulkReportController {
             alert.setContentText("这位Doctor，您还没登录企鹅数据呢~");
             alert.showAndWait();
         }
-        p.stage_multiple_reports(userId, all_results);
+        ArrayList<String> output = p.stage_multiple_reports(userId, all_results);
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Output of this upload");
+        alert.setHeaderText("本次掉落汇报");
+        alert.setContentText("请Doctor务必确认数据无误");
+
+        //Label label = new Label("本次作战记录");
+
+        TextArea textArea = new TextArea();
+        textArea.setEditable(false);
+        textArea.setWrapText(true);
+        for(String a : output){
+            textArea.appendText(a + "\n");
+        }
+
+        textArea.setMaxWidth(Double.MAX_VALUE);
+        textArea.setMaxHeight(Double.MAX_VALUE);
+        GridPane.setVgrow(textArea, Priority.ALWAYS);
+        GridPane.setHgrow(textArea, Priority.ALWAYS);
+
+        GridPane expContent = new GridPane();
+        expContent.setMaxWidth(Double.MAX_VALUE);
+        //expContent.add(label, 0, 0);
+        expContent.add(textArea, 0, 1);
+
+        //alert.getDialogPane().setExpandableContent(expContent);
+        alert.getDialogPane().setContent(expContent);
+        alert.showAndWait();
         all_results.clear();
     }
 
