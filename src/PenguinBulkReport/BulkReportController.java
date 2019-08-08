@@ -3,6 +3,8 @@ package PenguinBulkReport;
 import java.net.URL;
 import java.util.*;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -302,6 +304,16 @@ public class BulkReportController {
             TextField quantity = new TextField();
             quantity.setText("0");
             quantity.setVisible(false);
+            quantity.textProperty().addListener(new ChangeListener<String>() {
+                @Override
+                public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                    if (!newValue.matches("\\d*")){
+                        quantity.setText(newValue.replaceAll("[^\\d]", ""));
+                    } else {
+                        save_StageResult();
+                    }
+                }
+            });
             Label type_label = new Label();
             box_for_quantity.getChildren().addAll(type_label,quantity);
             amount_fields[i] = quantity;
