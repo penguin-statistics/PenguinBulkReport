@@ -56,7 +56,7 @@ public class PenguinBulkReport {
         params.put("stageId",stage_id);//Stage id
         params.put("drops",drop_info); // drop array with matrix
         params.put("furnitureNum",furniture_num);//either 1 | 0
-        params.put("source","penguin bulk report");//either 1 | 0
+        params.put("source","penguin bulk report");
         System.out.println(params.toString());
         int respond_code = sendDropRequest(requestUrl,params,userID);
 
@@ -152,8 +152,6 @@ public class PenguinBulkReport {
 
     public Pair<JSONArray, JSONObject> get_limitations(String stageID){
         JSONArray allLimitations = all_Limitations();
-        JSONArray itemQuantityBounds = null;
-        JSONArray itemTypeBounds = null;
         for (int i = 0; i < allLimitations.length(); i++) {
             JSONObject item = allLimitations.getJSONObject(i);
             String stage = item.optString("name");
@@ -190,6 +188,16 @@ public class PenguinBulkReport {
             int furniture_num = 0;
 
             for (int t = 0; t < Integer.parseInt(results.get(stageID).get("times").toString()); t++) {
+                boolean all_zero = true;
+                for (int num : drop_list){
+                    if (num != 0){
+                        all_zero = false;
+                        break;
+                    }
+                }
+                if (all_zero){
+                    break;
+                }
                 summary_drop = new JSONArray();
                 //JSONArray single_res = new JSONArray();
                 if (furniture_total >0) {
@@ -246,30 +254,53 @@ public class PenguinBulkReport {
                     item_index++;
                     item_counter++;
                 }// extra drop loop ends
-
+                boolean extra_once = false;
                 System.out.println("item_counter:");
                 System.out.println(item_counter);
                 for (int i = 0; i < extra_drop.length(); i++) {
-                    if (drop_list[item_index] == 0) {
+                    if (drop_list[item_index] == 0 || extra_once) {
                         item_index++;
                         continue;
                     }else if(special_drop.length()>0 && item_counter == item_type_bounds[1]-1 && item_counter<item_index){
                         break;
                     } else if(item_counter == item_type_bounds[1]){
                         break;
+                    } else if (special_drop.length()>0 && item_counter == item_type_bounds[1]-1 && item_counter<item_index){
+                        break;
+                    } else if (special_drop.length()>0 && item_counter == 0) {
+                        extra_once = true;
                     }
                     HashMap<String, Object> item = new HashMap<>();
                     String id = extra_drop.getString(i);
-                    item.put("itemId", id);
-                    item_quantity_bound = get_item_limitation_in_stage(stageID, id);
-                    if (drop_list[item_index] >= item_quantity_bound[1]) {
-                        item.put("quantity", item_quantity_bound[1]);
-                        drop_list[item_index] -= item_quantity_bound[1];
-                    } else if (drop_list[item_index] >= item_quantity_bound[0]) {
-                        item.put("quantity", item_quantity_bound[0]);
-                        drop_list[item_index] -= item_quantity_bound[0];
+                    int previous_item_index = -1;
+                    int previous_item_amount = -1;
+                    for (int j = 0; j < summary_drop.length(); j++) {
+                        JSONObject previous_item = summary_drop.getJSONObject(j);
+                        String itemId = previous_item.optString("itemId");
+                        int quantity = previous_item.optInt("quantity");
+                        if (itemId.equals(id)){
+                            previous_item_index = j;
+                            previous_item_amount = quantity;
+                            break;
+                        }
                     }
-                    summary_drop.put(new JSONObject(item));
+                    if (previous_item_index <0) {
+                        item.put("itemId", id);
+                        item_quantity_bound = get_item_limitation_in_stage(stageID, id);
+                        if (drop_list[item_index] >= item_quantity_bound[1]) {
+                            item.put("quantity", item_quantity_bound[1]);
+                            drop_list[item_index] -= item_quantity_bound[1];
+                        } else if (drop_list[item_index] >= item_quantity_bound[0]) {
+                            item.put("quantity", item_quantity_bound[0]);
+                            drop_list[item_index] -= item_quantity_bound[0];
+                        }
+                        summary_drop.put(new JSONObject(item));
+                    } else {
+                        item_quantity_bound = get_item_limitation_in_stage(stageID, id);
+                        JSONObject previous = summary_drop.getJSONObject(previous_item_index);
+                        previous.put(id, item_quantity_bound[1] - drop_list[item_index]);
+                    }
+
                     item_index++;
                     item_counter++;
                 }
@@ -289,7 +320,9 @@ public class PenguinBulkReport {
 //                    System.out.println(report_status);
 //                    System.out.println("Upload Successful");
 //                }
+
             }// for ends
+
         }// iterate stage ends
         return infos;
     }//method ends

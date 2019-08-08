@@ -186,35 +186,6 @@ public class BulkReportController {
         hboxes[15].setVisible(true);
         times_box.setVisible(true);
     }
-//    private HBox create_Item_panel(String item, String type){
-//        HBox item_base = new HBox(2);
-//        URL urlToImage = this.getClass().getResource("icons/"+item+"icon.png");
-//        Image icon_image = new Image(String.valueOf(urlToImage),50,50,false,false);
-//        ImageView icon = new ImageView(icon_image);
-//        VBox box_for_quantity = new VBox();
-//        TextField quantity = new TextField();
-//        Label type_label = new Label();
-//        box_for_quantity.getChildren().addAll(type_label,quantity);
-//        switch (type) {
-//            case "normal":
-//                item_base.setStyle("-fx-border-width: 2;" +"-fx-border-color: DeepSkyBlue");
-//                type_label.setText("常规掉落");
-//                type_label.setTextFill(Color.web("#00bfff"));
-//                break;
-//            case "special":
-//                item_base.setStyle("-fx-border-width: 2;" +"-fx-border-color: coral");
-//                type_label.setText("特殊掉落");
-//                type_label.setTextFill(Color.web("#ff7f50"));
-//                break;
-//            case "extra":
-//                item_base.setStyle("-fx-border-width: 2;" +"-fx-border-color: dimgrey");
-//                type_label.setText("额外掉落");
-//                type_label.setTextFill(Color.web("#696969"));
-//                break;
-//        }
-//        item_base.getChildren().addAll(icon,box_for_quantity);
-//        return item_base;
-//    }
 
     private void clear_boxes(){
         for (int i=0;i<15;i++){
@@ -252,7 +223,6 @@ public class BulkReportController {
             num_for_each[i] =Integer.parseInt(amount_fields[i].getText());
         }
         drop_results.put("drop_list",num_for_each);
-        //System.out.println(Arrays.toString(num_for_each));
         drop_results.put("furniture_total",Integer.parseInt(amount_fields[15].getText()));
         all_results.put(stage_selected,drop_results);
     }
@@ -313,7 +283,7 @@ public class BulkReportController {
             for (int i = 0; i < allStages.length(); i++) {
                 JSONObject item = allStages.getJSONObject(i);
                 String stageType = item.optString("stageType");
-                if (stageType.equals("MAIN")) {
+                if (stageType.equals("MAIN")||stageType.equals("SUB")) {
                     String stageID = item.optString("code");
                     if (stageID.contains("GT")){
                         continue;
@@ -323,15 +293,8 @@ public class BulkReportController {
                 }
             }
         }
-//        if (limitations.isEmpty()) {
-//            JSONArray allLimitaions = PenguinBulkReport.all_stages();
-//            for (int i = 0; i < allLimitaions.length(); i++) {
-//                JSONObject item = allLimitaions.getJSONObject(i);
-//                String stage = item.optString("name");
-//                JSONArray itemQuatityBounds = (JSONArray) item.opt("itemQuantityBounds");
-//                limitations.put(stage,itemQuatityBounds);
-//            }
-//        }
+
+
         for (int i=0;i<15;i++){
             hboxes[i] = new HBox(2);
             ImageView icon = new ImageView();
