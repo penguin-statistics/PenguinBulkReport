@@ -188,16 +188,16 @@ public class PenguinBulkReport {
             int furniture_num = 0;
 
             for (int t = 0; t < Integer.parseInt(results.get(stageID).get("times").toString()); t++) {
-                boolean all_zero = true;
-                for (int num : drop_list){
-                    if (num != 0){
-                        all_zero = false;
-                        break;
-                    }
-                }
-                if (all_zero){
-                    break;
-                }
+//                boolean all_zero = true;
+//                for (int num : drop_list){
+//                    if (num != 0){
+//                        all_zero = false;
+//                        break;
+//                    }
+//                }
+//                if (all_zero){
+//                    break;
+//                }
                 summary_drop = new JSONArray();
                 //JSONArray single_res = new JSONArray();
                 if (furniture_total >0) {
