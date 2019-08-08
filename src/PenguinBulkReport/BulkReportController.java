@@ -3,6 +3,8 @@ package PenguinBulkReport;
 import java.net.URL;
 import java.util.*;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -98,6 +100,7 @@ public class BulkReportController {
         choices_of_stage.clear();
         clear_boxes();
         updateListView();
+        all_results.clear();
     }
 
     @FXML
@@ -136,7 +139,7 @@ public class BulkReportController {
 
     @FXML
     private void select_stage(MouseEvent event){
-        clear_boxes();
+        //clear_boxes();
 
         String stage_selected = stage_list.getSelectionModel().getSelectedItem();
         JSONObject info = PenguinBulkReport.stage_info(stages.get(stage_selected));
@@ -185,6 +188,35 @@ public class BulkReportController {
         //System.out.println(total_type);
         hboxes[15].setVisible(true);
         times_box.setVisible(true);
+        String key = null;
+        for (String possible_key : stages.keySet()){
+            if (stage_selected.equals(possible_key)){
+                key = possible_key;
+                break;
+            }
+        }
+        if (key != null) {
+            HashMap<String, Object> storage = all_results.get(stages.get(key));
+            if (storage != null) {
+                System.out.println(new JSONObject(storage).toString());
+                times_field.setText((String) storage.get("times"));
+                int[] temp_read_list = (int[]) storage.get("drop_list");
+                for (int i = 0; i < temp_read_list.length; i++) {
+                    amount_fields[i].setText(Integer.toString(temp_read_list[i]));
+                }
+            } else {
+                clear_boxes_text();
+            }
+        } else {
+            clear_boxes_text();
+        }
+    }//select_stage ends
+
+    private void clear_boxes_text(){
+        for (int i=0;i<15;i++){
+            ((TextField)((VBox)hboxes[i].getChildren().get(1)).getChildren().get(1)).setText("0");
+        }
+        times_field.setText("0");
     }
 
     private void clear_boxes(){
@@ -196,6 +228,7 @@ public class BulkReportController {
             hboxes[i].setStyle(null);
         }
         hboxes[15].setVisible(false);
+        times_field.setText("0");
         times_box.setVisible(false);
 
     }
@@ -302,12 +335,32 @@ public class BulkReportController {
             TextField quantity = new TextField();
             quantity.setText("0");
             quantity.setVisible(false);
+            quantity.textProperty().addListener(new ChangeListener<String>() {
+                @Override
+                public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                    if (!newValue.matches("\\d*")){
+                        quantity.setText(newValue.replaceAll("[^\\d]", ""));
+                    } else {
+                        save_StageResult();
+                    }
+                }
+            });
             Label type_label = new Label();
             box_for_quantity.getChildren().addAll(type_label,quantity);
             amount_fields[i] = quantity;
             hboxes[i].getChildren().addAll(icon,box_for_quantity);
             result_grid.add(hboxes[i], i%4,i/4);
             hboxes[i].setPrefWidth(100);
+            times_field.textProperty().addListener(new ChangeListener<String>() {
+                @Override
+                public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                    if (!newValue.matches("\\d*")){
+                        quantity.setText(newValue.replaceAll("[^\\d]", ""));
+                    } else {
+                        save_StageResult();
+                    }
+                }
+            });
         }
         hboxes[15] = create_Furniture_panel();
         hboxes[15].setVisible(false);
