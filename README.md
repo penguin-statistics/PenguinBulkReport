@@ -1,7 +1,7 @@
 # PenguinBulkReport
 
 ## 企鹅数据本地批量上传
-Ver. demo-0.0.1  
+Ver. demo-0.0.2  
 Author. Strontium
 
 ## 问题
@@ -11,6 +11,12 @@ Author. Strontium
 ~~1/常规掉落和额外掉落存在相同种类时上传数据会产生违反limitation的上传  
 2/掉落物数量全部编入body后依旧产生空白的无意义上传quest~~  
 2019-08-07已修复
+## Update History
+### Ver 0.0.1
+* First Working version  
+### Ver 0.0.2
+* Auto-save  
+* Meta-stages data reversion  
 
 ### 目前上传功能已经写好
 但是实际没有实装  
@@ -19,3 +25,4 @@ Author. Strontium
 
 ### Side Notes
 本质企鹅数据DDOS机（大雾
+
