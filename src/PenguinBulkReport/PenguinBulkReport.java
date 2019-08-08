@@ -233,8 +233,7 @@ public class PenguinBulkReport {
                         break;
                     }
                 }// normal drop loop ends
-               // if(!((item_type_bounds[1]==item_quantity_bound[2] && item_quantity_bound[2]==normal_drop.length()) ||(item_index==item_type_bounds[1]))) {
-                for (int i = 0; i < special_drop.length(); i++) {
+               for (int i = 0; i < special_drop.length(); i++) {
                     if (drop_list[item_index] == 0) {
                         item_index++;
                         continue;
@@ -298,7 +297,10 @@ public class PenguinBulkReport {
                     } else {
                         item_quantity_bound = get_item_limitation_in_stage(stageID, id);
                         JSONObject previous = summary_drop.getJSONObject(previous_item_index);
-                        previous.put(id, item_quantity_bound[1] - drop_list[item_index]);
+                        int new_amount = previous_item_amount+ (item_quantity_bound[1] - drop_list[item_index]);
+                        if (new_amount <= item_quantity_bound[1]) {
+                            previous.put(id, new_amount);
+                        }
                     }
 
                     item_index++;
