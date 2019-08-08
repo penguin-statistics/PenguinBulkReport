@@ -314,14 +314,14 @@ public class PenguinBulkReport {
                 params.put("source","penguin bulk report");//either 1 | 0
                 System.out.println(params.toString());
                 infos.add(params.toString());
-                int report_status = report(stageID,summary_drop,furniture_num,userID);
-                if (report_status>201){
-                    System.out.println("Error! Error code is:");
-                    System.out.println(report_status);
-                } else{
-                    System.out.println(report_status);
-                    System.out.println("Upload Successful");
-                }
+//                int report_status = report(stageID,summary_drop,furniture_num,userID);
+//                if (report_status>201){
+//                    System.out.println("Error! Error code is:");
+//                    System.out.println(report_status);
+//                } else{
+//                    System.out.println(report_status);
+//                    System.out.println("Upload Successful");
+//                }
 
             }// for ends
 
