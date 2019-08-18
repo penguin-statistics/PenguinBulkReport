@@ -34,7 +34,7 @@ public class BulkReportController {
     private HashMap<String,HashMap<String,Object>> all_results = new HashMap<>();
     private TextField[] amount_fields = new TextField[16];
     private int total_type = 0;
-    private String userId = null;
+    private String userId = "Strontium_Test";
     private PenguinBulkReport p = new PenguinBulkReport();
     @FXML
     private BorderPane frame;
