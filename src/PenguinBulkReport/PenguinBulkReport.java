@@ -1,15 +1,15 @@
 package PenguinBulkReport;
 
+import java.awt.*;
 import java.io.*;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLEncoder;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.ArrayList;
+
 import java.nio.charset.Charset;
 
 import javafx.util.Pair;
@@ -174,7 +174,325 @@ public class PenguinBulkReport {
         return bounds;
     }
 
+    private boolean check_int_array_all_zeros(int[] array){
+        boolean allNonZero = true;
+        for (int i = 0; i < array.length; i++) {
+            if (array[i] == 0) {
+                allNonZero = false;
+                break;
+            }
+        }
+        return allNonZero;
+    }
+
     public ArrayList<String> stage_multiple_reports(String userID, HashMap<String,HashMap<String,Object>> results){
+        ArrayList<String> infos = new ArrayList<>();
+        for (String stageID : results.keySet()) {
+            JSONObject info = stage_info(stageID);
+            JSONArray normal_drop = info.getJSONArray("normalDrop");
+            JSONArray special_drop = info.getJSONArray("specialDrop");
+            JSONArray extra_drop = info.getJSONArray("extraDrop");
+
+            JSONArray summary_drop;
+
+            boolean drop_extra_once = special_drop.length() >0;
+            int[] drop_list = (int[])results.get(stageID).get("drop_list");
+            int furniture_total = (int)results.get(stageID).get("furniture_total");
+            int furniture_num = 0;
+            int num_times = Integer.parseInt(results.get(stageID).get("times").toString());
+            int[] item_type_bounds = {get_limitations(stageID).getValue().getInt("lower"),get_limitations(stageID).getValue().getInt("upper")};
+            ArrayList<HashMap<String, Object>> pre_definded_list = new ArrayList<>();
+            int temp_item_count = 0;
+            System.out.println("Initial List");
+            System.out.println(Arrays.toString(drop_list));
+            System.out.println("-------");
+
+            // 1 item for each time -> guarantee non null
+            int item_in_pre_defined = 0;
+            while(item_in_pre_defined < num_times){
+//                System.out.println(item_in_pre_defined);
+//                System.out.println(num_times);
+                if (drop_list[temp_item_count]<=0){
+                    temp_item_count ++;
+                    continue;
+                }
+                HashMap<String, Object> temp_object = new HashMap<>();
+                if (temp_item_count<normal_drop.length()) {
+                    temp_object.put("itemId", normal_drop.get(temp_item_count));
+                    temp_object.put("quantity", 1);
+                    drop_list[temp_item_count]--;
+                } else if (temp_item_count - normal_drop.length()<special_drop.length()) {
+                    temp_object.put("itemId", special_drop.get(temp_item_count- normal_drop.length()));
+                    temp_object.put("quantity", 1);
+                    drop_list[temp_item_count]--;
+                } else if (temp_item_count - normal_drop.length()-special_drop.length()< extra_drop.length()) {
+                    temp_object.put("itemId", extra_drop.get(temp_item_count- normal_drop.length()-special_drop.length()));
+                    temp_object.put("quantity", 1);
+                    drop_list[temp_item_count]--;
+                }
+                if (!temp_object.isEmpty()) {
+                    pre_definded_list.add(temp_object);
+                    item_in_pre_defined++;
+//                    System.out.println(temp_object.toString());
+//                    System.out.println(Arrays.toString(drop_list));
+                }
+            }
+
+            for(int t = 0; t < num_times; t++) {
+
+
+                if (furniture_total >0) {
+                    furniture_num = 1;
+                    furniture_total --;
+                } else{
+                    furniture_num =0;
+                }
+                int item_counter =1;
+                int[] item_quantity_bound=null;
+
+                HashMap<String, Object> item = pre_definded_list.get(t);
+                String current_item_id = item.get("itemId").toString();
+
+
+                summary_drop = new JSONArray();
+                for(int item_index = 0; item_index < drop_list.length; item_index++) {
+
+                    if (check_int_array_all_zeros(drop_list)) break;
+                    if (item_index < normal_drop.length() && drop_list[item_index] > 0) {
+                        if (normal_drop.getString(item_index).equals(current_item_id)) {
+                            item_quantity_bound = get_item_limitation_in_stage(stageID, current_item_id);
+                            if (drop_list[item_index] >= item_quantity_bound[1]) {
+                                item.put("quantity", item_quantity_bound[1]);
+                                drop_list[item_index] -= item_quantity_bound[1] - 1;
+                            } else if (drop_list[item_index] >= item_quantity_bound[0] && drop_list[item_index] > 0) {
+                                item.put("quantity", drop_list[item_index] + 1);
+                                drop_list[item_index] -= drop_list[item_index];
+                            }
+                        } else if (item_counter < item_type_bounds[1]) {
+                            String id_temp = normal_drop.getString(item_index);
+                            item_quantity_bound = get_item_limitation_in_stage(stageID, id_temp);
+                            HashMap<String, Object> temp = new HashMap<>();
+                            temp.put("itemId", id_temp);
+                            if (drop_list[item_index] >= item_quantity_bound[1]) {
+                                temp.put("quantity", item_quantity_bound[1]);
+                                drop_list[item_index] -= item_quantity_bound[1];
+                            } else if (drop_list[item_index] >= item_quantity_bound[0] && drop_list[item_index] > 0) {
+                                temp.put("quantity", drop_list[item_index]);
+                                drop_list[item_index] -= drop_list[item_index];
+                            }
+                            item_counter++;
+                            summary_drop.put(new JSONObject(temp));
+                        }// else ends
+                    }// normal drop ends
+                    else if (item_index - normal_drop.length() < special_drop.length() && drop_list[item_index] > 0
+                            && item_counter < item_type_bounds[1]
+                    ) {
+                        if (special_drop.getString(item_index - normal_drop.length()).equals(current_item_id)) {
+                            item_quantity_bound = get_item_limitation_in_stage(stageID, current_item_id);
+                            if (drop_list[item_index] >= item_quantity_bound[1]) {
+                                item.put("quantity", item_quantity_bound[1]);
+                                drop_list[item_index] -= item_quantity_bound[1] - 1;
+                            } else if (drop_list[item_index] >= item_quantity_bound[0] && drop_list[item_index] > 0) {
+                                item.put("quantity", drop_list[item_index] + 1);
+                                drop_list[item_index] -= drop_list[item_index];
+                            }
+                        } else if (item_counter < item_type_bounds[1]) {
+                            String id_temp = special_drop.getString(item_index - normal_drop.length());
+                            item_quantity_bound = get_item_limitation_in_stage(stageID, id_temp);
+                            HashMap<String, Object> temp = new HashMap<>();
+                            temp.put("itemId", id_temp);
+                            if (drop_list[item_index] >= item_quantity_bound[1]) {
+                                temp.put("quantity", item_quantity_bound[1]);
+                                drop_list[item_index] -= item_quantity_bound[1];
+                            } else if (drop_list[item_index] >= item_quantity_bound[0] && drop_list[item_index] > 0) {
+                                temp.put("quantity", drop_list[item_index]);
+                                drop_list[item_index] -= drop_list[item_index];
+                            }
+                            summary_drop.put(new JSONObject(temp));
+                            item_counter++;
+                        }// else ends
+                    } // special drop ends
+                    else if (item_index - normal_drop.length() - special_drop.length() < extra_drop.length()
+                            && drop_list[item_index] > 0
+                            && item_counter < item_type_bounds[1]
+                    ) {
+                        if (extra_drop.getString(item_index - normal_drop.length() - special_drop.length()).equals(current_item_id)) {
+                            item_quantity_bound = get_item_limitation_in_stage(stageID, current_item_id);
+                            if (drop_list[item_index] >= item_quantity_bound[1]) {
+                                item.put("quantity", item_quantity_bound[1]);
+                                drop_list[item_index] -= item_quantity_bound[1] - 1;
+                            } else if (drop_list[item_index] >= item_quantity_bound[0] && drop_list[item_index] > 0) {
+                                item.put("quantity", drop_list[item_index] + 1);
+                                drop_list[item_index] -= drop_list[item_index];
+                            }
+                        } else if (item_counter < (drop_extra_once? item_type_bounds[1]-1 : item_type_bounds[1])) {
+                            String id_temp = extra_drop.getString(item_index - normal_drop.length() - special_drop.length());
+                            item_quantity_bound = get_item_limitation_in_stage(stageID, id_temp);
+                            HashMap<String, Object> temp = new HashMap<>();
+                            temp.put("itemId", id_temp);
+                            if (drop_list[item_index] >= item_quantity_bound[1]) {
+                                temp.put("quantity", item_quantity_bound[1]);
+                                drop_list[item_index] -= item_quantity_bound[1];
+                            } else if (drop_list[item_index] >= item_quantity_bound[0] && drop_list[item_index] > 0) {
+                                temp.put("quantity", drop_list[item_index]);
+                                drop_list[item_index] -= drop_list[item_index];
+                            }
+                            summary_drop.put(new JSONObject(temp));
+                            item_counter++;
+                        }// else ends
+                    } // extra ends
+                }// for loop ends
+                summary_drop.put(item);
+
+//                for (int i = 0; i<normal_drop.length();i++){
+//                    if (drop_list[item_index]==0){
+//                        item_index++;
+//                        continue;
+//                    }
+//                    String id = normal_drop.getString(i);
+//                    if (id.equals(current_item_id)) {
+//                        item_quantity_bound = get_item_limitation_in_stage(stageID, id);
+//                        if (drop_list[item_index] >= item_quantity_bound[1]) {
+//                            int previous_number = Integer.parseInt(item.get("quantity").toString());
+//                            item.put("quantity", item_quantity_bound[1]);
+//                            drop_list[item_index] -= item_quantity_bound[1]-previous_number;
+//                        } else if (drop_list[item_index] >= item_quantity_bound[0] && drop_list[item_index] > 0) {
+//                            int previous_number = Integer.parseInt(item.get("quantity").toString());
+//                            item.put("quantity", drop_list[item_index]);
+//                            drop_list[item_index] -= drop_list[item_index]-previous_number;
+//                        }
+//                        summary_drop.put(new JSONObject(item));
+//                    } else if (drop_list[item_index]>0){
+//                        HashMap<String, Object> temp = new HashMap<>();
+//                        temp.put("itemId", id);
+//                        item_quantity_bound = get_item_limitation_in_stage(stageID, id);
+//                        if (drop_list[item_index] >= item_quantity_bound[1]) {
+//                            item.put("quantity", item_quantity_bound[1]);
+//                            drop_list[item_index] -= item_quantity_bound[1];
+//                        } else if (drop_list[item_index]>= item_quantity_bound[0] && drop_list[item_index]>0) {
+//                            item.put("quantity", drop_list[item_index]);
+//                            drop_list[item_index] -= drop_list[item_index];
+//                        }
+//                        summary_drop.put(new JSONObject(temp));
+//                    }
+//                    item_counter++;
+//                    item_index++;
+//                    if (item_counter==item_type_bounds[1]){
+//                        break;
+//                    }
+//                }// normal drop loop ends
+//
+//                for (int i = 0; i < special_drop.length(); i++) {
+//                    if (drop_list[item_index]==0){
+//                        item_index++;
+//                        continue;
+//                    }
+//                    String id = special_drop.getString(i);
+//
+//                    if (id.equals(item.get("itemId"))) {
+//                        item_quantity_bound = get_item_limitation_in_stage(stageID, id);
+//                        if (drop_list[item_index] >= item_quantity_bound[1]) {
+//                            int previous_number = Integer.parseInt(item.get("quantity").toString());
+//                            item.put("quantity", item_quantity_bound[1]);
+//                            drop_list[item_index] -= item_quantity_bound[1]-previous_number;
+//                        } else if (drop_list[item_index] >= item_quantity_bound[0] && drop_list[item_index] > 0) {
+//                            int previous_number = Integer.parseInt(item.get("quantity").toString());
+//                            item.put("quantity", drop_list[item_index]);
+//                            drop_list[item_index] -= drop_list[item_index]-previous_number;
+//                        }
+//                        summary_drop.put(new JSONObject(item));
+//                    } else if (drop_list[item_index]>0){
+//                        HashMap<String, Object> temp = new HashMap<>();
+//                        temp.put("itemId", id);
+//                        item_quantity_bound = get_item_limitation_in_stage(stageID, id);
+//                        if (drop_list[item_index] >= item_quantity_bound[1]) {
+//                            item.put("quantity", item_quantity_bound[1]);
+//                            drop_list[item_index] -= item_quantity_bound[1];
+//                        } else if (drop_list[item_index]>= item_quantity_bound[0] && drop_list[item_index]>0) {
+//                            item.put("quantity", drop_list[item_index]);
+//                            drop_list[item_index] -= drop_list[item_index];
+//                        }
+//                        summary_drop.put(new JSONObject(temp));
+//                    }
+//
+//                    item_index++;
+//                    item_counter++;
+//                }// extra drop loop ends
+//
+//                boolean extra_once = false;
+//                for (int i = 0; i < extra_drop.length(); i++) {
+//                    if (drop_list[item_index]==0){
+//                        item_index++;
+//                        continue;
+//                    } else if(special_drop.length()>0 && item_counter == item_type_bounds[1]-1 && item_counter<item_index){
+//                        break;
+//                    } else if(item_counter == item_type_bounds[1]){
+//                        break;
+//                    } else if (special_drop.length()>0 && item_counter == item_type_bounds[1]-1 && item_counter<item_index){
+//                        break;
+//                    } else if (special_drop.length()>0 && item_counter == 0) {
+//                        extra_once = true;
+//                    }
+//                    String id = extra_drop.getString(i);
+//                    int previous_item_index = -1;
+//                    int previous_item_amount = -1;
+//
+//                    for (int j = 0; j < summary_drop.length(); j++) {
+//                        JSONObject previous_item = summary_drop.getJSONObject(j);
+//                        String itemId = previous_item.optString("itemId");
+//                        int quantity = previous_item.optInt("quantity");
+//                        if (itemId.equals(id)){
+//                            previous_item_index = j;
+//                            previous_item_amount = quantity;
+//                            break;
+//                        }
+//                    }
+//                    if (previous_item_index <0 && drop_list[item_index]>0) {
+//                        item_quantity_bound = get_item_limitation_in_stage(stageID, id);
+//                        if (drop_list[item_index] >= item_quantity_bound[1]) {
+//                            item.put("quantity", item_quantity_bound[1]);
+//                            drop_list[item_index] -= item_quantity_bound[1];
+//                        } else if (drop_list[item_index] >= item_quantity_bound[0]) {
+//                            item.put("quantity", item_quantity_bound[0]);
+//                            drop_list[item_index] -= item_quantity_bound[0];
+//                        }
+//                        summary_drop.put(new JSONObject(item));
+//                    } else if (drop_list[item_index]>0){
+//                        item_quantity_bound = get_item_limitation_in_stage(stageID, id);
+//                        JSONObject previous = summary_drop.getJSONObject(previous_item_index);
+//                        int new_amount = previous_item_amount + (item_quantity_bound[1] - drop_list[item_index]);
+//                        if (new_amount <= item_quantity_bound[1]) {
+//                            previous.put("quantity", new_amount);
+//                        }
+//                    }
+//
+//                    item_index++;
+//                    item_counter++;
+//                }
+
+                JSONObject params = new JSONObject();
+                params.put("stageId",stageID);//Stage id
+                params.put("drops",summary_drop); // drop array with matrix
+                params.put("furnitureNum",furniture_num);//either 1 | 0
+                params.put("source","penguin bulk report");//either 1 | 0
+                System.out.println(params.toString());
+                infos.add(params.toString());
+//                int report_status = report(stageID,summary_drop,furniture_num,userID);
+//                if (report_status>201){
+//                    System.out.println("Error! Error code is:");
+//                    System.out.println(report_status);
+//                } else{
+//                    System.out.println(report_status);
+//                    System.out.println("Upload Successful");
+//                }
+
+            }// for ends
+
+        }// iterate stage ends
+        return infos;
+    }//method ends
+
+    public ArrayList<String> stage_multiple_reports_old(String userID, HashMap<String,HashMap<String,Object>> results){
         ArrayList<String> infos = new ArrayList<>();
         for (String stageID : results.keySet()) {
             JSONObject info = stage_info(stageID);
@@ -233,6 +551,7 @@ public class PenguinBulkReport {
                         break;
                     }
                 }// normal drop loop ends
+
                for (int i = 0; i < special_drop.length(); i++) {
                     if (drop_list[item_index] == 0) {
                         item_index++;
