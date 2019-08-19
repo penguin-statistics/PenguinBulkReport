@@ -1,24 +1,23 @@
 package PenguinBulkReport;
 
-import java.net.URL;
-import java.util.*;
-
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import javax.swing.border.TitledBorder;
+import java.net.URL;
+import java.util.*;
 
 
 /**
@@ -34,8 +33,10 @@ public class BulkReportController {
     private HashMap<String,HashMap<String,Object>> all_results = new HashMap<>();
     private TextField[] amount_fields = new TextField[16];
     private int total_type = 0;
-    private String userId = "Strontium_Test";
+    private String userId;
     private PenguinBulkReport p = new PenguinBulkReport();
+    private ArrayList<ImageView> imageViews = new ArrayList<>();
+
     @FXML
     private BorderPane frame;
 
@@ -86,8 +87,6 @@ public class BulkReportController {
             if (!choices_of_stage.contains(s)){
                 choices_of_stage.add(s);
                 updateListView();
-            } else{
-                //System.out.println("This stage is selected");
             }
         });
         updateListView();
@@ -130,7 +129,6 @@ public class BulkReportController {
             alert.showAndWait();
 
         }
-        //System.out.println(login_status);
     }
 
     private void updateListView(){
@@ -248,7 +246,6 @@ public class BulkReportController {
     @FXML
     private void save_StageResult(){
         String stage_selected = stages.get(stage_list.getSelectionModel().getSelectedItem());
-        //System.out.println("Stage selected:"+ stage_selected);
         HashMap<String,Object> drop_results = new HashMap<String, Object>();
         drop_results.put("times",times_field.getText());
         int[] num_for_each = new int[15];
@@ -274,8 +271,6 @@ public class BulkReportController {
         alert.setTitle("Output of this upload");
         alert.setHeaderText("本次掉落汇报");
         alert.setContentText("请Doctor务必确认数据无误");
-
-        //Label label = new Label("本次作战记录");
 
         TextArea textArea = new TextArea();
         textArea.setEditable(false);
@@ -331,6 +326,8 @@ public class BulkReportController {
         for (int i=0;i<15;i++){
             hboxes[i] = new HBox(2);
             ImageView icon = new ImageView();
+            imageViews.add(icon);
+
             VBox box_for_quantity = new VBox();
             TextField quantity = new TextField();
             quantity.setText("0");
@@ -338,10 +335,34 @@ public class BulkReportController {
             quantity.textProperty().addListener(new ChangeListener<String>() {
                 @Override
                 public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                    if (!newValue.matches("\\d*")){
+                    if (!newValue.matches("\\d*")) {
                         quantity.setText(newValue.replaceAll("[^\\d]", ""));
                     } else {
                         save_StageResult();
+                    }
+                }
+            });
+            icon.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+                @Override
+                public void handle(MouseEvent event) {
+                    System.out.println("kokodayo");
+                    int source_id = imageViews.indexOf(event.getSource());
+                    System.out.println(source_id);
+                    // left
+                    if (event.getButton()== MouseButton.PRIMARY){
+                        int previous_amount = Integer.parseInt(amount_fields[source_id].getText());
+                        System.out.println(previous_amount);
+                        previous_amount++;
+                        amount_fields[source_id].setText(Integer.toString(previous_amount));
+                    }
+                    //right
+                    if (event.getButton()== MouseButton.SECONDARY){
+                        int previous_amount = Integer.parseInt(amount_fields[source_id].getText());
+                        if (previous_amount >0) {
+                            previous_amount--;
+                            amount_fields[source_id].setText(Integer.toString(previous_amount));
+                        }
+
                     }
                 }
             });
@@ -351,16 +372,14 @@ public class BulkReportController {
             hboxes[i].getChildren().addAll(icon,box_for_quantity);
             result_grid.add(hboxes[i], i%4,i/4);
             hboxes[i].setPrefWidth(100);
-            times_field.textProperty().addListener(new ChangeListener<String>() {
-                @Override
-                public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                    if (!newValue.matches("\\d*")){
-                        quantity.setText(newValue.replaceAll("[^\\d]", ""));
-                    } else {
-                        save_StageResult();
-                    }
+            times_field.textProperty().addListener((observable, oldValue, newValue) -> {
+                if (!newValue.matches("\\d*")){
+                    quantity.setText(newValue.replaceAll("[^\\d]", ""));
+                } else {
+                    save_StageResult();
                 }
             });
+
         }
         hboxes[15] = create_Furniture_panel();
         hboxes[15].setVisible(false);
