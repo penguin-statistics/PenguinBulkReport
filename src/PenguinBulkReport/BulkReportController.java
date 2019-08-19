@@ -1,24 +1,23 @@
 package PenguinBulkReport;
 
-import java.net.URL;
-import java.util.*;
-
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import javax.swing.border.TitledBorder;
+import java.net.URL;
+import java.util.*;
 
 
 /**
@@ -34,8 +33,10 @@ public class BulkReportController {
     private HashMap<String,HashMap<String,Object>> all_results = new HashMap<>();
     private TextField[] amount_fields = new TextField[16];
     private int total_type = 0;
-    private String userId = "Strontium_Test";
+    private String userId;
     private PenguinBulkReport p = new PenguinBulkReport();
+    private ArrayList<ImageView> imageViews = new ArrayList<>();
+
     @FXML
     private BorderPane frame;
 
@@ -86,8 +87,6 @@ public class BulkReportController {
             if (!choices_of_stage.contains(s)){
                 choices_of_stage.add(s);
                 updateListView();
-            } else{
-                //System.out.println("This stage is selected");
             }
         });
         updateListView();
@@ -130,7 +129,6 @@ public class BulkReportController {
             alert.showAndWait();
 
         }
-        //System.out.println(login_status);
     }
 
     private void updateListView(){
@@ -204,11 +202,20 @@ public class BulkReportController {
                 for (int i = 0; i < temp_read_list.length; i++) {
                     amount_fields[i].setText(Integer.toString(temp_read_list[i]));
                 }
+                amount_fields[15].setText(storage.get("furniture_total").toString());
             } else {
                 clear_boxes_text();
+                amount_fields[15].setText("0");
             }
         } else {
             clear_boxes_text();
+            amount_fields[15].setText("0");
+        }
+        for (int i = 0;i<normal_drop.length()+extra_drop.length()+special_drop.length();i++){
+            hboxes[i].setVisible(true);
+        }
+        for (int i = normal_drop.length()+extra_drop.length()+special_drop.length();i<14;i++){
+            hboxes[i].setVisible(false);
         }
     }//select_stage ends
 
@@ -248,7 +255,6 @@ public class BulkReportController {
     @FXML
     private void save_StageResult(){
         String stage_selected = stages.get(stage_list.getSelectionModel().getSelectedItem());
-        //System.out.println("Stage selected:"+ stage_selected);
         HashMap<String,Object> drop_results = new HashMap<String, Object>();
         drop_results.put("times",times_field.getText());
         int[] num_for_each = new int[15];
@@ -269,19 +275,17 @@ public class BulkReportController {
             alert.setContentText("这位Doctor，您还没登录企鹅数据呢~");
             alert.showAndWait();
         }
-        ArrayList<String> output = p.stage_multiple_reports(userId, all_results);
+        ArrayList<JSONObject> output = p.stage_multiple_reports(userId, all_results);
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Output of this upload");
         alert.setHeaderText("本次掉落汇报");
         alert.setContentText("请Doctor务必确认数据无误");
 
-        //Label label = new Label("本次作战记录");
-
         TextArea textArea = new TextArea();
         textArea.setEditable(false);
         textArea.setWrapText(true);
-        for(String a : output){
-            textArea.appendText(a + "\n");
+        for(JSONObject a : output){
+            textArea.appendText(a.toString() + "\n");
         }
 
         textArea.setMaxWidth(Double.MAX_VALUE);
@@ -291,10 +295,8 @@ public class BulkReportController {
 
         GridPane expContent = new GridPane();
         expContent.setMaxWidth(Double.MAX_VALUE);
-        //expContent.add(label, 0, 0);
         expContent.add(textArea, 0, 1);
 
-        //alert.getDialogPane().setExpandableContent(expContent);
         alert.getDialogPane().setContent(expContent);
         alert.showAndWait();
         all_results.clear();
@@ -331,6 +333,8 @@ public class BulkReportController {
         for (int i=0;i<15;i++){
             hboxes[i] = new HBox(2);
             ImageView icon = new ImageView();
+            imageViews.add(icon);
+
             VBox box_for_quantity = new VBox();
             TextField quantity = new TextField();
             quantity.setText("0");
@@ -338,10 +342,34 @@ public class BulkReportController {
             quantity.textProperty().addListener(new ChangeListener<String>() {
                 @Override
                 public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                    if (!newValue.matches("\\d*")){
+                    if (!newValue.matches("\\d*")) {
                         quantity.setText(newValue.replaceAll("[^\\d]", ""));
                     } else {
                         save_StageResult();
+                    }
+                }
+            });
+            icon.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+                @Override
+                public void handle(MouseEvent event) {
+                    System.out.println("kokodayo");
+                    int source_id = imageViews.indexOf(event.getSource());
+                    System.out.println(source_id);
+                    // left
+                    if (event.getButton()== MouseButton.PRIMARY){
+                        int previous_amount = Integer.parseInt(amount_fields[source_id].getText());
+                        System.out.println(previous_amount);
+                        previous_amount++;
+                        amount_fields[source_id].setText(Integer.toString(previous_amount));
+                    }
+                    //right
+                    if (event.getButton()== MouseButton.SECONDARY){
+                        int previous_amount = Integer.parseInt(amount_fields[source_id].getText());
+                        if (previous_amount >0) {
+                            previous_amount--;
+                            amount_fields[source_id].setText(Integer.toString(previous_amount));
+                        }
+
                     }
                 }
             });
@@ -351,22 +379,29 @@ public class BulkReportController {
             hboxes[i].getChildren().addAll(icon,box_for_quantity);
             result_grid.add(hboxes[i], i%4,i/4);
             hboxes[i].setPrefWidth(100);
-            times_field.textProperty().addListener(new ChangeListener<String>() {
-                @Override
-                public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                    if (!newValue.matches("\\d*")){
-                        quantity.setText(newValue.replaceAll("[^\\d]", ""));
-                    } else {
-                        save_StageResult();
-                    }
+            times_field.textProperty().addListener((observable, oldValue, newValue) -> {
+                if (!newValue.matches("\\d*")){
+                    quantity.setText(newValue.replaceAll("[^\\d]", ""));
+                } else {
+                    save_StageResult();
                 }
             });
+
         }
         hboxes[15] = create_Furniture_panel();
         hboxes[15].setVisible(false);
         times_box.setVisible(false);
         result_grid.add(hboxes[15],2,3);
-
+        amount_fields[15].textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                if (!newValue.matches("\\d*")) {
+                    amount_fields[15].setText(newValue.replaceAll("[^\\d]", ""));
+                } else {
+                    save_StageResult();
+                }
+            }
+        });
         assert add_stage_button != null : "fx:id=\"add_stage_button\" was not injected: check your FXML file 'scene.fxml'.";
         assert upload_button != null : "fx:id=\"upload_button\" was not injected: check your FXML file 'scene.fxml'.";
         assert save_result_button != null : "fx:id=\"save_result_button\" was not injected: check your FXML file 'scene.fxml'.";
