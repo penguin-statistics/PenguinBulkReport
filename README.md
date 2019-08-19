@@ -24,12 +24,7 @@ Author. Strontium
 * Auto-save  
 * Meta-stages data reversion  
 ### Ver 0.0.3
-* 左键物品图标+1，右键-1
-
-### 目前上传功能已经写好
-但是实际没有实装  
-只会在控制台输出上传数据+会弹出窗口展示request body(所以是demo版)  
-目的是为了减少站长削除异常数据的工作量
+* Left click ++, right click --  
 
 ### Side Notes
 本质企鹅数据DDOS机（大雾
