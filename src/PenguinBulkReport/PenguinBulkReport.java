@@ -48,19 +48,8 @@ public class PenguinBulkReport {
         return respond_code;
     }
 
-    public int report(String stage_id, JSONArray drop_info, int furniture_num,String userID) {
-
-        String requestUrl = "https://penguin-stats.io/PenguinStats/api/report";
-        // Info send to penguin-stats.io
-        JSONObject params = new JSONObject();
-        params.put("stageId",stage_id);//Stage id
-        params.put("drops",drop_info); // drop array with matrix
-        params.put("furnitureNum",furniture_num);//either 1 | 0
-        params.put("source","penguin bulk report");
-        System.out.println(params.toString());
-        int respond_code = sendDropRequest(requestUrl,params,userID);
-
-        return respond_code;
+    public int report(String stage_id, JSONObject params,String userID) {
+        return sendDropRequest("https://penguin-stats.io/PenguinStats/api/report",params,userID);
     }
 
     public static JSONArray all_stages(){
@@ -193,10 +182,13 @@ public class PenguinBulkReport {
             JSONArray special_drop = info.getJSONArray("specialDrop");
             JSONArray extra_drop = info.getJSONArray("extraDrop");
 
-            JSONArray summary_drop;
+            JSONArray summary_drop = null;
+            ArrayList<JSONObject> temp_objects = new ArrayList<>();
 
             boolean drop_extra_once = special_drop.length() >0;
             int[] drop_list = (int[])results.get(stageID).get("drop_list");
+            int sum_of_amounts = Arrays.stream(drop_list).sum();
+            int accumulator = 0;
             int furniture_total = (int)results.get(stageID).get("furniture_total");
             int furniture_num = 0;
             int num_times = Integer.parseInt(results.get(stageID).get("times").toString());
@@ -228,6 +220,7 @@ public class PenguinBulkReport {
                 if (!temp_object.isEmpty()) {
                     pre_definded_list.add(temp_object);
                     item_in_pre_defined++;
+                    accumulator++;
                 }
             }
 
@@ -275,6 +268,7 @@ public class PenguinBulkReport {
                             }
                             item_counter++;
                             summary_drop.put(new JSONObject(temp));
+                            accumulator = accumulator+Integer.parseInt(temp.get("quantity").toString());
                         }// else ends
                     }// normal drop ends
                     else if (item_index - normal_drop.length() < special_drop.length() && drop_list[item_index] > 0
@@ -302,6 +296,7 @@ public class PenguinBulkReport {
                                 drop_list[item_index] -= drop_list[item_index];
                             }
                             summary_drop.put(new JSONObject(temp));
+                            accumulator = accumulator+Integer.parseInt(temp.get("quantity").toString());
                             item_counter++;
                         }// else ends
                     } // special drop ends
@@ -331,20 +326,32 @@ public class PenguinBulkReport {
                                 drop_list[item_index] -= drop_list[item_index];
                             }
                             summary_drop.put(new JSONObject(temp));
+                            accumulator = accumulator+Integer.parseInt(temp.get("quantity").toString());
                             item_counter++;
                         }// else ends
                     } // extra ends
                 }// for loop ends
                 summary_drop.put(item);
+                accumulator = accumulator+Integer.parseInt(item.get("quantity").toString());
                 JSONObject params = new JSONObject();
                 params.put("stageId",stageID);//Stage id
                 params.put("drops",summary_drop); // drop array with matrix
                 params.put("furnitureNum",furniture_num);//either 1 | 0
                 params.put("source","penguin bulk report");//either 1 | 0
-                infos.add(params);
-                //int report_status = report(stageID,summary_drop,furniture_num,userID);
-
+                temp_objects.add(params);
             }// for ends
+            if (sum_of_amounts == accumulator && check_int_array_all_zeros(drop_list)){
+                for (JSONObject temp_object : temp_objects) {
+                    infos.add(temp_object);
+                    int status = report(stageID, temp_object, userID);
+                }
+            } else {
+                ArrayList<JSONObject> message = new ArrayList<>();
+                JSONObject error = new JSONObject();
+                error.put("Error","The number is not correct");
+                message.add(error);
+                return message;
+            }
         }// iterate stage ends
         return infos;
     }//method ends
