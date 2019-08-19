@@ -185,8 +185,8 @@ public class PenguinBulkReport {
         return allNonZero;
     }
 
-    public ArrayList<String> stage_multiple_reports(String userID, HashMap<String,HashMap<String,Object>> results){
-        ArrayList<String> infos = new ArrayList<>();
+    public ArrayList<JSONObject> stage_multiple_reports(String userID, HashMap<String,HashMap<String,Object>> results){
+        ArrayList<JSONObject> infos = new ArrayList<>();
         for (String stageID : results.keySet()) {
             JSONObject info = stage_info(stageID);
             JSONArray normal_drop = info.getJSONArray("normalDrop");
@@ -341,15 +341,26 @@ public class PenguinBulkReport {
                 params.put("drops",summary_drop); // drop array with matrix
                 params.put("furnitureNum",furniture_num);//either 1 | 0
                 params.put("source","penguin bulk report");//either 1 | 0
-                System.out.println(params.toString());
-                infos.add(params.toString());
+                infos.add(params);
                 //int report_status = report(stageID,summary_drop,furniture_num,userID);
 
             }// for ends
-
         }// iterate stage ends
         return infos;
     }//method ends
+
+//    public ArrayList<String> validate(ArrayList<JSONObject> jsonStrings, int[] original_drop_list){
+//        int[] res = new int[original_drop_list.length];
+//        for (JSONObject item : jsonStrings){
+//            JSONArray drop_list = item.getJSONArray("drops");
+//            for (int i = 0; i<drop_list.length();i++){
+//                JSONObject temp_item = drop_list.getJSONObject(i);
+//
+//
+//            }
+//        }
+//
+//    }
 
     public ArrayList<String> stage_multiple_reports_old(String userID, HashMap<String,HashMap<String,Object>> results){
         ArrayList<String> infos = new ArrayList<>();

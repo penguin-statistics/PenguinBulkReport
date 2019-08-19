@@ -202,11 +202,20 @@ public class BulkReportController {
                 for (int i = 0; i < temp_read_list.length; i++) {
                     amount_fields[i].setText(Integer.toString(temp_read_list[i]));
                 }
+                amount_fields[15].setText(storage.get("furniture_total").toString());
             } else {
                 clear_boxes_text();
+                amount_fields[15].setText("0");
             }
         } else {
             clear_boxes_text();
+            amount_fields[15].setText("0");
+        }
+        for (int i = 0;i<normal_drop.length()+extra_drop.length()+special_drop.length();i++){
+            hboxes[i].setVisible(true);
+        }
+        for (int i = normal_drop.length()+extra_drop.length()+special_drop.length();i<14;i++){
+            hboxes[i].setVisible(false);
         }
     }//select_stage ends
 
@@ -266,7 +275,7 @@ public class BulkReportController {
             alert.setContentText("这位Doctor，您还没登录企鹅数据呢~");
             alert.showAndWait();
         }
-        ArrayList<String> output = p.stage_multiple_reports(userId, all_results);
+        ArrayList<JSONObject> output = p.stage_multiple_reports(userId, all_results);
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Output of this upload");
         alert.setHeaderText("本次掉落汇报");
@@ -275,8 +284,8 @@ public class BulkReportController {
         TextArea textArea = new TextArea();
         textArea.setEditable(false);
         textArea.setWrapText(true);
-        for(String a : output){
-            textArea.appendText(a + "\n");
+        for(JSONObject a : output){
+            textArea.appendText(a.toString() + "\n");
         }
 
         textArea.setMaxWidth(Double.MAX_VALUE);
@@ -286,10 +295,8 @@ public class BulkReportController {
 
         GridPane expContent = new GridPane();
         expContent.setMaxWidth(Double.MAX_VALUE);
-        //expContent.add(label, 0, 0);
         expContent.add(textArea, 0, 1);
 
-        //alert.getDialogPane().setExpandableContent(expContent);
         alert.getDialogPane().setContent(expContent);
         alert.showAndWait();
         all_results.clear();
@@ -385,7 +392,16 @@ public class BulkReportController {
         hboxes[15].setVisible(false);
         times_box.setVisible(false);
         result_grid.add(hboxes[15],2,3);
-
+        amount_fields[15].textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                if (!newValue.matches("\\d*")) {
+                    amount_fields[15].setText(newValue.replaceAll("[^\\d]", ""));
+                } else {
+                    save_StageResult();
+                }
+            }
+        });
         assert add_stage_button != null : "fx:id=\"add_stage_button\" was not injected: check your FXML file 'scene.fxml'.";
         assert upload_button != null : "fx:id=\"upload_button\" was not injected: check your FXML file 'scene.fxml'.";
         assert save_result_button != null : "fx:id=\"save_result_button\" was not injected: check your FXML file 'scene.fxml'.";
