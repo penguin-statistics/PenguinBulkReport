@@ -29,3 +29,6 @@ Author. Strontium
 ### Side Notes
 本质企鹅数据DDOS机（大雾
 
+###运行
+下载.jar包  
+双击运行
