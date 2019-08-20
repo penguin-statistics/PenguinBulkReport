@@ -237,8 +237,6 @@ public class PenguinBulkReport {
 
                 HashMap<String, Object> item = pre_definded_list.get(t);
                 String current_item_id = item.get("itemId").toString();
-
-
                 summary_drop = new JSONArray();
                 for(int item_index = 0; item_index < drop_list.length; item_index++) {
 
@@ -295,7 +293,7 @@ public class PenguinBulkReport {
                                 drop_list[item_index] -= drop_list[item_index];
                             }
                             summary_drop.put(new JSONObject(temp));
-                            accumulator = accumulator+Integer.parseInt(temp.get("quantity").toString());
+                            accumulator = accumulator + Integer.parseInt(temp.get("quantity").toString());
                             item_counter++;
                         }// else ends
                     } // special drop ends
@@ -339,7 +337,12 @@ public class PenguinBulkReport {
                 params.put("source","penguin bulk report");//either 1 | 0
                 temp_objects.add(params);
             }// for ends
-            if (sum_of_amounts == accumulator && check_int_array_all_zeros(drop_list)){
+            System.out.println(sum_of_amounts);
+            System.out.println(accumulator);
+            System.out.println(sum_of_amounts == accumulator);
+            System.out.println(check_int_array_all_zeros(drop_list));
+            //if (sum_of_amounts == accumulator &&
+            if (check_int_array_all_zeros(drop_list)){
                 for (JSONObject temp_object : temp_objects) {
                     infos.add(temp_object);
                     int status = report(stageID, temp_object, userID);
