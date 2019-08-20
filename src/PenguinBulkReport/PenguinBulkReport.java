@@ -165,7 +165,7 @@ public class PenguinBulkReport {
     private boolean check_int_array_all_zeros(int[] array){
         boolean allNonZero = true;
         for (int i = 0; i < array.length; i++) {
-            if (array[i] == 0) {
+            if (array[i] != 0) {
                 allNonZero = false;
                 break;
             }
@@ -341,6 +341,7 @@ public class PenguinBulkReport {
             System.out.println(accumulator);
             System.out.println(sum_of_amounts == accumulator);
             System.out.println(check_int_array_all_zeros(drop_list));
+            System.out.println(Arrays.toString(drop_list));
             //if (sum_of_amounts == accumulator &&
             if (check_int_array_all_zeros(drop_list)){
                 for (JSONObject temp_object : temp_objects) {
