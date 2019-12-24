@@ -2,6 +2,7 @@
 
 ## 企鹅数据本地批量上传
 Ver. demo-0.0.4  
+
 Author. Strontium
 
 ## 问题
@@ -24,9 +25,13 @@ Author. Strontium
 * Meta-stages data reversion  
 ### Ver 0.0.3
 * bug fix
+* Left click ++, right click --  
 ### Ver 0.0.4
 * Data for chapter 6 added
 
 ### Side Notes
 本质企鹅数据DDOS机（大雾
 
+### 运行
+下载.jar包  
+双击运行
