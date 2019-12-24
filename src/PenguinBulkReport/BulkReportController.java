@@ -29,9 +29,9 @@ public class BulkReportController {
     private HashMap<String, String> items = new HashMap<>();
     //private HashMap<String, JSONArray> limitations = new HashMap<>();
     private ArrayList<String> choices_of_stage = new ArrayList<>();
-    private HBox[] hboxes = new HBox[16];
+    private HBox[] hboxes = new HBox[20];
     private HashMap<String,HashMap<String,Object>> all_results = new HashMap<>();
-    private TextField[] amount_fields = new TextField[16];
+    private TextField[] amount_fields = new TextField[20];
     private int total_type = 0;
     private String userId;
     private PenguinBulkReport p = new PenguinBulkReport();
@@ -137,7 +137,7 @@ public class BulkReportController {
 
     @FXML
     private void select_stage(MouseEvent event){
-        //clear_boxes();
+        clear_boxes();
 
         String stage_selected = stage_list.getSelectionModel().getSelectedItem();
         JSONObject info = PenguinBulkReport.stage_info(stages.get(stage_selected));
@@ -184,7 +184,7 @@ public class BulkReportController {
         }
         total_type = hbox_index;
         //System.out.println(total_type);
-        hboxes[15].setVisible(true);
+        hboxes[19].setVisible(true);
         times_box.setVisible(true);
         String key = null;
         for (String possible_key : stages.keySet()){
@@ -202,14 +202,14 @@ public class BulkReportController {
                 for (int i = 0; i < temp_read_list.length; i++) {
                     amount_fields[i].setText(Integer.toString(temp_read_list[i]));
                 }
-                amount_fields[15].setText(storage.get("furniture_total").toString());
+                amount_fields[19].setText(storage.get("furniture_total").toString());
             } else {
                 clear_boxes_text();
-                amount_fields[15].setText("0");
+                amount_fields[19].setText("0");
             }
         } else {
             clear_boxes_text();
-            amount_fields[15].setText("0");
+            amount_fields[19].setText("0");
         }
         for (int i = 0;i<normal_drop.length()+extra_drop.length()+special_drop.length();i++){
             hboxes[i].setVisible(true);
@@ -220,21 +220,21 @@ public class BulkReportController {
     }//select_stage ends
 
     private void clear_boxes_text(){
-        for (int i=0;i<15;i++){
+        for (int i=0;i<19;i++){
             ((TextField)((VBox)hboxes[i].getChildren().get(1)).getChildren().get(1)).setText("0");
         }
         times_field.setText("0");
     }
 
     private void clear_boxes(){
-        for (int i=0;i<15;i++){
+        for (int i=0;i<19;i++){
             ((ImageView)hboxes[i].getChildren().get(0)).setImage(null);
             ((Label)((VBox)hboxes[i].getChildren().get(1)).getChildren().get(0)).setText("");
             ((TextField)((VBox)hboxes[i].getChildren().get(1)).getChildren().get(1)).setText("0");
             ((VBox)hboxes[i].getChildren().get(1)).getChildren().get(1).setVisible(false);
             hboxes[i].setStyle(null);
         }
-        hboxes[15].setVisible(false);
+        hboxes[19].setVisible(false);
         times_field.setText("0");
         times_box.setVisible(false);
 
@@ -246,7 +246,7 @@ public class BulkReportController {
         Label furniture_label = new Label("家具掉落");
         TextField quantity = new TextField();
         quantity.setText("0");
-        amount_fields[15] = quantity;
+        amount_fields[19] = quantity;
         item_base.getChildren().addAll(furniture_label,quantity);
         item_pane.getChildren().addAll(item_base);
         return item_pane;
@@ -257,12 +257,12 @@ public class BulkReportController {
         String stage_selected = stages.get(stage_list.getSelectionModel().getSelectedItem());
         HashMap<String,Object> drop_results = new HashMap<String, Object>();
         drop_results.put("times",times_field.getText());
-        int[] num_for_each = new int[15];
+        int[] num_for_each = new int[19];
         for (int i =0;i<total_type;i++){
             num_for_each[i] =Integer.parseInt(amount_fields[i].getText());
         }
         drop_results.put("drop_list",num_for_each);
-        drop_results.put("furniture_total",Integer.parseInt(amount_fields[15].getText()));
+        drop_results.put("furniture_total",Integer.parseInt(amount_fields[19].getText()));
         all_results.put(stage_selected,drop_results);
     }
 
@@ -304,6 +304,7 @@ public class BulkReportController {
 
     @FXML
     private void initialize() {
+
         if (items.isEmpty()) {
             JSONArray allItems = PenguinBulkReport.all_items();
             for (int i = 0; i < allItems.length(); i++) {
@@ -330,7 +331,7 @@ public class BulkReportController {
         }
 
 
-        for (int i=0;i<15;i++){
+        for (int i=0;i<19;i++){
             hboxes[i] = new HBox(2);
             ImageView icon = new ImageView();
             imageViews.add(icon);
@@ -388,15 +389,15 @@ public class BulkReportController {
             });
 
         }
-        hboxes[15] = create_Furniture_panel();
-        hboxes[15].setVisible(false);
+        hboxes[19] = create_Furniture_panel();
+        hboxes[19].setVisible(false);
         times_box.setVisible(false);
-        result_grid.add(hboxes[15],2,3);
-        amount_fields[15].textProperty().addListener(new ChangeListener<String>() {
+        result_grid.add(hboxes[19],16%4,16/4);
+        amount_fields[19].textProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                 if (!newValue.matches("\\d*")) {
-                    amount_fields[15].setText(newValue.replaceAll("[^\\d]", ""));
+                    amount_fields[19].setText(newValue.replaceAll("[^\\d]", ""));
                 } else {
                     save_StageResult();
                 }
