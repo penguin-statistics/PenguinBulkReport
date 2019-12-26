@@ -22,7 +22,7 @@ import org.json.JSONObject;
  */
 
 public class PenguinBulkReport {
-
+    public String[] activityItem = {"randomMaterial_1", "ap_supply_lt_010"};
 
     public int login(String userID){
         int respond_code =0;
@@ -140,6 +140,7 @@ public class PenguinBulkReport {
 
     public Pair<JSONArray, JSONObject> get_limitations(String stageID){
         JSONArray allLimitations = all_Limitations();
+
         for (int i = 0; i < allLimitations.length(); i++) {
             JSONObject item = allLimitations.getJSONObject(i);
             String stage = item.optString("name");
@@ -153,6 +154,13 @@ public class PenguinBulkReport {
     public int[] get_item_limitation_in_stage(String stageID, String itemID){
         Pair<JSONArray, JSONObject> limitations = get_limitations(stageID);
         int[] bounds = new int[2];
+        for (String s : activityItem) {
+            if (itemID.equals(s)) {
+                bounds[0] = 0;
+                bounds[1] = 1;
+                return bounds;
+            }
+        }
         for (int i =0;i<limitations.getKey().length();i++){
             if (itemID.equals(limitations.getKey().getJSONObject(i).getString("itemId"))){
                 bounds[0] = limitations.getKey().getJSONObject(i).getJSONObject("bounds").getInt("lower");
@@ -267,11 +275,13 @@ public class PenguinBulkReport {
                             summary_drop.put(new JSONObject(temp));
                             accumulator = accumulator+Integer.parseInt(temp.get("quantity").toString());
                         }// else ends
+                        System.out.println("Normal drop"+ item_index);
                     }// normal drop ends
                     else if (item_index - normal_drop.length() < special_drop.length() && drop_list[item_index] > 0
                             && item_counter < item_type_bounds[1]
                     ) {
                         if (special_drop.getString(item_index - normal_drop.length()).equals(current_item_id)) {
+
                             item_quantity_bound = get_item_limitation_in_stage(stageID, current_item_id);
                             if (drop_list[item_index] >= item_quantity_bound[1]) {
                                 item.put("quantity", item_quantity_bound[1]);
@@ -283,6 +293,12 @@ public class PenguinBulkReport {
                         } else if (item_counter < item_type_bounds[1]) {
                             String id_temp = special_drop.getString(item_index - normal_drop.length());
                             item_quantity_bound = get_item_limitation_in_stage(stageID, id_temp);
+                            for (int k = 0; k< item_quantity_bound.length; k++){
+                                System.out.println(stageID);
+                                System.out.println(special_drop.toString());
+                                System.out.println("bounds: "+item_quantity_bound[k]);
+                            }
+
                             HashMap<String, Object> temp = new HashMap<>();
                             temp.put("itemId", id_temp);
                             if (drop_list[item_index] >= item_quantity_bound[1]) {
@@ -296,11 +312,13 @@ public class PenguinBulkReport {
                             accumulator = accumulator + Integer.parseInt(temp.get("quantity").toString());
                             item_counter++;
                         }// else ends
+                        System.out.println("Special drop "+ item_index);
                     } // special drop ends
                     else if (item_index - normal_drop.length() - special_drop.length() < extra_drop.length()
                             && drop_list[item_index] > 0
                             && item_counter < item_type_bounds[1]
                     ) {
+                        System.out.println("Extra drop "+ item_index);
                         if (extra_drop.getString(item_index - normal_drop.length() - special_drop.length()).equals(current_item_id)) {
                             item_quantity_bound = get_item_limitation_in_stage(stageID, current_item_id);
                             if (drop_list[item_index] >= item_quantity_bound[1]) {
